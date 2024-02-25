@@ -14,10 +14,8 @@ def set_pos_xx ():
     min_angle = 20
     max_angle = 30
 
-    servoMotors[0].setAngle(i)
+    servoMotors[0].setAngle(0)
     servoMotors[1].setAngle(-20)
-    #servoMotors[1].setAngle(0)
-    #servoMotors[1].setAngle(20)
     servoMotors[2].setAngle(0)
     servoMotors[3].setAngle(0)
     sleep(5)

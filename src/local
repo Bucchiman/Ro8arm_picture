@@ -1,4 +1,153 @@
 #!/usr/bin/zsh
+#   x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 xa xb xc xd xe xf
+#0x       o
+#1x 
+#2x 
+#3x 
+#4x 
+#5x 
+#6x 
+#7x 
+#8x 
+#9x 
+#ax 
+#bx 
+#cx 
+#dx 
+#ex 
+#fx 
+#
+#
+#
+#
+##
+# 0_1.5  line          xx -5 -7 0
+# 0_2    line          xx -7 -5 0
+# 0_2.5  line(default) xx -10 2 0
+# 0_3    line          xx -5 -10 0
+# 0_3    line          xx -5 -10 0
+#
+# 8.5_0	               xx 2 -23 0
+
+
+
+#@ This is not success
+function 0_1.5 () {
+    # Done
+    # xx -5 -7 0
+    # OLD:python test.py --m01 " -5" --m02 " -7" --m03 "0"
+    python test.py --m01 "85" --m02 "83" --m03 "0"
+}
+
+#@ This is not success
+function 0_2 () {
+    # Done
+    # xx -7 -5 0
+    # OLD:python test.py --m01 " -7" --m02 " -5" --m03 "0"
+    python test.py --m01 "83" --m02 "85" --m03 "0"
+}
+
+#@ This is not success
+function 0_2.5 () {
+    # Done
+    # 0_2.5  line(default) xx -10 2 0
+    # OLD:python test.py --m01 " -10" --m02 "2" --m03 "0"
+    python test.py --m01 "80" --m02 "92" --m03 "0"
+}
+# other  python test.py --m01 " -4" --m02 " -7" --m03 "0"
+
+#@ This is not success
+function 0_1 () {
+    # Done
+    # 0_1  line xx -5 -10 0
+    # OLD:python test.py --m01 " -5" --m02 " -10" --m03 "0"
+    python test.py --m01 "85" --m02 "80" --m03 "0"
+}
+
+
+#@ This is not success
+function 0_0.5 () {
+    #OLD:python test.py --m01 " -10" --m02 " -23" --m03 "0"
+    python test.py --m01 "80" --m02 "67" --m03 "0"
+
+}
+
+
+
+function 3_0 () {
+    # OLD:python test.py --m00_min "7" --m00_max "110" --m01 " -17" --m02 " 6" --m03 "0"
+    python test.py --m00_min "7" --m00_max "110" --m01 "73" --m02 "96" --m03 "0"
+}
+
+function 3.5_0 () {
+    # OLD:python test.py --m00_min "7" --m00_max "110" --m01 " -15" --m02 " 4" --m03 "0"
+    python test.py --m00_min "7" --m00_max "110" --m01 "75" --m02 "94" --m03 "0"
+}
+
+function 4_0 () {
+    # Done
+    # OLD:python test.py --m00_min "7" --m00_max "110" --m01 " -12" --m02 " 0" --m03 "0"
+    python test.py --m00_min "7" --m00_max "110" --m01 "78" --m02 "90" --m03 "0"
+}
+
+function 4.5_0 () {
+    # OLD:python test.py --m00_min "10" --m00_max "100" --m01 " -10" --m02 " -3" --m03 "0"
+    python test.py --m00_min "10" --m00_max "100" --m01 "80" --m02 "87" --m03 "0"
+}
+
+function 5_0 () { 
+    # Done
+    # 5_0 10~ -8 -5 0
+    # OLD:python test.py --m00_min "10" --m00_max "100" --m01 " -8" --m02 " -5" --m03 "0"
+    python test.py --m00_min "10" --m00_max "100" --m01 "82" --m02 "85" --m03 "0"
+}
+
+
+function 6_0 () { 
+    # Done
+    # 6_0 45 -5 -10 0
+    # OLD:python test.py --m00_min "14" --m00_max "100" --m01 " -5" --m02 " -10" --m03 "0"
+    python test.py --m00_min "14" --m00_max "100" --m01 "85" --m02 "80" --m03 "0"
+}
+
+function 7_0 () {
+    # Done
+    # 7_0 45 -3 -14 0
+    # OLD:python test.py --m00_min "14" --m00_max "100" --m01 " -3" --m02 " -14" --m03 "0"
+    python test.py --m00_min "14" --m00_max "100" --m01 "87" --m02 "76" --m03 "0"
+}
+
+function 8_0 () {
+    # Done
+    # 8_0 19~ -1 -18 0
+    # OLD:python test.py --m00_min "19" --m00_max "100" --m01 " -1" --m02 " -18" --m03 "0"
+    python test.py --m00_min "19" --m00_max "100" --m01 "89" --m02 "72" --m03 "0"
+}
+
+function 8.5_0 () {
+    # Done
+    # 8.5_0 21~ 2 -23 0
+    # OLD:python test.py --m00_min "21" --m00_max "100" --m01 " 3" --m02 " -23" --m03 "0"
+    # New Done
+    python test.py --m00_min "21" --m00_max "100" --m01 "93" --m02 "57" --m03 "0"
+}
+
+
+
+
+function test () {
+    # OLD:python test.py --m00_min "7" --m00_max "110" --m01 " -24" --m02 " 6" --m03 "0"
+    python test.py --m00_min "7" --m00_max "110" --m01 "66" --m02 "96" --m03 "0"
+}
+
+
+function stable () {
+    # OLD:python test.py --m01 " -20" --m02 "0"
+    python test.py --m01 "70" --m02 "90"
+    #python test.py --m01 " -10" --m02 " -23" --m03 "0"
+
+}
+
 
 
 
@@ -24,14 +173,12 @@ function pos_maker () {
 
     for pf in $posff; do
         #echo $pf
-        sed s/xx/unko base.py
-        break
+        sed -e "s/xx/$pf/g" base.py > pos/pos_$pf.py
+	#echo "Hello World" | sed -e "s/ /,/g"
     done
-
-
 }
 
 
-pos_maker
+#pos_maker
 
-#eval $@
+eval $@
