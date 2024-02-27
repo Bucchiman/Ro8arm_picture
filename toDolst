@@ -1,1 +1,3 @@
-
+- Adjust rotation speed of servo        issue: 1
+    - [adafruit_circuitpython-pca9685](https://github.com/adafruit/Adafruit_CircuitPython_PCA9685)
+    - [varspeedpython](https://github.com/pvanallen/VarSpeedPython)

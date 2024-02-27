@@ -1,0 +1,86 @@
+#!/bin/zsh
+#
+# FileName:     local
+# Author:       8ucchiman
+# CreatedDate:  2023-11-12 20:51:23
+# LastModified: 2023-12-12 18:22:32
+# Reference:    8ucchiman.jp
+# Description:  ---
+#
+
+
+source $HOME/Bmods
+
+function linit () {
+    echo "init"
+}
+
+function lsetup () {
+    echo "setup"
+}
+
+function lopen () {
+    echo "open"
+    local -A refs_lst=(
+        paper.A             assets/hoge.pdf
+        paper.B             assets/geho.pdf
+        sample_image.png    data/sample_data.png
+        sample_image.jpg    data/sample_data.jpg
+        sample_output.png   outputs/sample.png
+        sample_output.jpg   outputs/sapmle.jpg
+        slides              work.pptx
+
+    )
+
+    local target_ref=`array_fzf "${(k)refs_lst[*]}"`
+    local file_path=${refs_lst[$target_ref]}
+    local suffix=${file_path:e}
+    if [[ suffix == "pdf" ]]; then
+        evince $file_path
+    elif [[ suffix == "png" || suffix == "jpg" ]]; then
+        eog $file_path
+    elif [[ suffix == "key" || suffix == "pptx" ]]; then
+        libreoffice $file_path
+    else
+        echo "$suffix is imcompatible with this script."
+    fi
+}
+
+function lbuild () {
+    echo "build"
+}
+
+function lrun () {
+    echo "run"
+}
+
+function lclean () {
+    echo "clean"
+}
+
+function ldeploy () {
+    #
+    # @Description  command a & command b
+    #               background command a
+    #               foreground command b
+    # @params       : command a
+    #               : command b
+    # @Example
+    # @Reference    https://minory.org/rsync-exclude.html#google_vignette
+    #               https://qiita.com/bezeklik/items/22e791df7187958d76c1
+    #
+
+    echo "deploy"
+    #
+    # rsync -artlpu --exclue={'.git', 'assets', 'data/origin.zip'} ./ /tmp/8ucchiman/projectA
+    #
+    # a: archive
+    # r: recursive
+    # l: links
+    # p: perms
+    # t: timestamp
+    # u: update
+}
+
+
+eval $@
