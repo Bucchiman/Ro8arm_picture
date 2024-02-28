@@ -1,3 +1,4 @@
+import sys
 from servo_motor import ServoMotor
 from time import sleep
 
@@ -55,13 +56,16 @@ def motor4():
 #pose0 pose1 pose2 pose3 pose4 pose5 pose6 pose7 pose8 pose9 posea poseb posec posed posee posef
 #posf0 posf1 posf2 posf3 posf4 posf5 posf6 posf7 posf8 posf9 posfa posfb posfc posfd posfe posff
 
-
+def __debug_test ():
+    print("hello world from 8ucchiman")
 
 
 
 def main():
+
+    eval(f"{sys.argv[0]}()")
     #motor0()
-    motor1()
+    #motor1()
     #motor2()
     #motor3()
     pass
