@@ -44,10 +44,10 @@ def test ():
         servoMotors[3].setAngle(args["m03"])
         sleep(0.5)
 
-    servoMotors[0].cleanup()
-    servoMotors[1].cleanup()
-    servoMotors[2].cleanup()
-    servoMotors[3].cleanup()
+    #servoMotors[0].cleanup()
+    #servoMotors[1].cleanup()
+    #servoMotors[2].cleanup()
+    #servoMotors[3].cleanup()
 
 
 
