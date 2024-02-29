@@ -1,34 +1,27 @@
+from random import randint
 from servo_motor import ServoMotor
 from time import sleep
 
-servoMotors = []
 
-servoMotors.append(ServoMotor(Channel=0, ZeroOffset=0))
-servoMotors.append(ServoMotor(Channel=1, ZeroOffset=0))
-servoMotors.append(ServoMotor(Channel=2, ZeroOffset=0))
-servoMotors.append(ServoMotor(Channel=3, ZeroOffset=0))
+def line_base(position: int):
+    pass
 
-# stable
-# servoMotors[0].setAngle(10)
-# servoMotors[1].setAngle(-20)
-# servoMotors[2].setAngle(25)
-# servoMotors[3].setAngle(0)
+def sky():
+    num_line = randint(-2, 16)
+    position = randint(10, 150)
 
-min_angle = 20
-max_angle = 30
 
-for i in range(min_angle, max_angle):
-    servoMotors[0].setAngle(i)
-    servoMotors[1].setAngle(-20)
-    #servoMotors[1].setAngle(0)
-    #servoMotors[1].setAngle(20)
-    servoMotors[2].setAngle(0)
-    servoMotors[3].setAngle(0)
+def top_of_mountain ():
 
-    sleep(1)
+    pass
 
-servoMotors[0].cleanup()
-servoMotors[1].cleanup()
-servoMotors[2].cleanup()
-servoMotors[3].cleanup()
 
+def base_of_mountain ():
+    pass
+
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()

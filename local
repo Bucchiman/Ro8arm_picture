@@ -150,17 +150,17 @@ function 8.5_0 () {
     python test.py --m00_min "19" --m00_max "100" --m01 "93" --m02 "57" --m03 "0"
 }
 
+function line_base_m02 () {
+    #python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "45" --m03 "0"
+    python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "48" --m03 "0"
+}
+
 function line_base_m01 () {
     #python test.py --m00_min "19" --m00_max "100" --m01 "93" --m02 "57" --m03 "0"
     #python test.py --m00_min "19" --m00_max "100" --m01 "93" --m02 "50" --m03 "0"
     #python test.py --m00_min "19" --m00_max "100" --m01 "96" --m02 "50" --m03 "0"
     #python test.py --m00_min "24" --m00_max "100" --m01 "96" --m02 "50" --m03 "0"
     python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "50" --m03 "0"
-}
-
-function line_base_m02 () {
-    #python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "45" --m03 "0"
-    python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "48" --m03 "0"
 }
 
 function line_base () {
