@@ -166,8 +166,73 @@ def snow (servoMotors):
         sleep(0.5)
 
 
-#def internal_mountain (servoMotors):
-    
+def internal_mountain (servoMotors):
+    # p25
+    #for motor00 in range(-13, 83):
+    #    print(motor00)
+    #    if motor00 < 10:
+    #        servoMotors[0].setAngle(motor00)
+    #        servoMotors[1].setAngle(48)
+    #        servoMotors[2].setAngle(120)
+    #        servoMotors[3].setAngle(0)
+    #    elif 10 <= motor00 and motor00 <= 40:
+    #        servoMotors[0].setAngle(motor00)
+    #        servoMotors[1].setAngle(49)
+    #        servoMotors[2].setAngle(120)
+    #        servoMotors[3].setAngle(0)
+    #    else:
+    #        servoMotors[0].setAngle(motor00)
+    #        servoMotors[1].setAngle(51)
+    #        servoMotors[2].setAngle(120)
+    #        servoMotors[3].setAngle(0)
+    #    #sleep(2.0)
+    #    sleep(0.5)
+
+ 
+    # p23
+    #for motor00 in range(-13, 99):
+    #    print(motor00)
+    #    if motor00 < 13:
+    #        servoMotors[0].setAngle(motor00)
+    #        servoMotors[1].setAngle(51)
+    #        servoMotors[2].setAngle(118)
+    #        servoMotors[3].setAngle(0)
+    #    elif 13 <= motor00 and motor00 < 70:
+    #        servoMotors[0].setAngle(motor00)
+    #        servoMotors[1].setAngle(51)
+    #        servoMotors[2].setAngle(119)
+    #        servoMotors[3].setAngle(0)
+    #    else:
+    #        servoMotors[0].setAngle(motor00)
+    #        servoMotors[1].setAngle(51)
+    #        servoMotors[2].setAngle(120)
+    #        servoMotors[3].setAngle(0)
+
+
+    #    sleep(0.5)
+
+
+    for motor00 in range(-13, 99):
+        print(motor00)
+        if motor00 < 13:
+            servoMotors[0].setAngle(motor00)
+            servoMotors[1].setAngle(53)
+            servoMotors[2].setAngle(115)
+            servoMotors[3].setAngle(0)
+        else:
+            servoMotors[0].setAngle(motor00)
+            servoMotors[1].setAngle(53)
+            servoMotors[2].setAngle(116)
+            servoMotors[3].setAngle(0)
+        #else:
+        #    servoMotors[0].setAngle(motor00)
+        #    servoMotors[1].setAngle(53)
+        #    servoMotors[2].setAngle(117)
+        #    servoMotors[3].setAngle(0)
+        sleep(0.5)
+
+
+
 
 
 def line_of_mountain (servoMotors):
@@ -273,7 +338,9 @@ def main():
     servoMotors.append(ServoMotor(Channel=2, ZeroOffset=0))
     servoMotors.append(ServoMotor(Channel=3, ZeroOffset=0))
     #line_of_mountain(servoMotors)
-    snow(servoMotors)
+    #snow(servoMotors)
+
+    internal_mountain(servoMotors)
 
     pass
 
