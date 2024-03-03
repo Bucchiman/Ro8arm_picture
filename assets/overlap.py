@@ -16,6 +16,8 @@ def main():
     #overlap_bg_src = cv.cvtColor(overlap, cv.COLOR_BGR2RGB)
     #blend = cv.addWeighted(img_fuji, 0.5, img_arm_tracking, 0.5, 0)
     # blendsrc = cv.cvtColor(blend, cv.COLOR_BGR2RGB)
+    overlap_flip_lr = cv.flip(overlap, 1)
+    cv.imwrite('overlap_flip.jpg', overlap_flip_lr)
     cv.imwrite("overlap.jpg", overlap)
 
 
