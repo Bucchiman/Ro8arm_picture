@@ -76,14 +76,21 @@ function 0_0.5 () {
 function 3_0 () {
     # OLD:python test.py --m00_min "7" --m00_max "110" --m01 " -17" --m02 " 6" --m03 "0"
     #python test.py --m00_min "7" --m00_max "110" --m01 "73" --m02 "96" --m03 "0"
-    python test.py --m00_min "7" --m00_max "110" --m01 "73" --m02 "89" --m03 "0"
+    python test.py --m00_min "-15" --m00_max "117" --m01 "74" --m02 "83" --m03 "0"
 }
 
 #@ archive p7
 function 3.5_0 () {
     # OLD:python test.py --m00_min "7" --m00_max "110" --m01 " -15" --m02 " 4" --m03 "0"
     #python test.py --m00_min "7" --m00_max "110" --m01 "75" --m02 "94" --m03 "0"
-    python test.py --m00_min "7" --m00_max "110" --m01 "75" --m02 "88" --m03 "0"
+    #python test.py --m00_min "-2" --m00_max "107" --m01 "77" --m02 "78" --m03 "0"
+    python test.py --m00_min "-10" --m00_max "107" --m01 "77" --m02 "79" --m03 "0"
+}
+
+function line_base_p06.5 () {
+    cd src
+    python test.py --m00_min "-4" --m00_max "107" --m01 "77" --m02 "79" --m03 "5"
+    stop
 }
 
 #@ archive p6
@@ -91,14 +98,15 @@ function 4_0 () {
     # Done
     # OLD:python test.py --m00_min "7" --m00_max "110" --m01 " -12" --m02 " 0" --m03 "0"
     #python test.py --m00_min "7" --m00_max "110" --m01 "78" --m02 "90" --m03 "0"
-    python test.py --m00_min "7" --m00_max "110" --m01 "78" --m02 "83" --m03 "0"
+    python test.py --m00_min "-2" --m00_max "106" --m01 "79" --m02 "75" --m03 "0"
 }
 
 #@ archive p5
 function 4.5_0 () {
     # OLD:python test.py --m00_min "10" --m00_max "100" --m01 " -10" --m02 " -3" --m03 "0"
     #python test.py --m00_min "10" --m00_max "100" --m01 "80" --m02 "87" --m03 "0"
-    python test.py --m00_min "10" --m00_max "100" --m01 "80" --m02 "80" --m03 "0"
+    #python test.py --m00_min "0" --m00_max "103" --m01 "80" --m02 "73" --m03 "0"
+    python test.py --m00_min "100" --m00_max "106" --m01 "80" --m02 "73" --m03 "0"
 }
 
 #@ archive p4
@@ -108,7 +116,9 @@ function 5_0 () {
     # OLD:python test.py --m00_min "10" --m00_max "100" --m01 " -8" --m02 " -5" --m03 "0"
     #python test.py --m00_min "10" --m00_max "100" --m01 "82" --m02 "85" --m03 "0"
     #python test.py --m00_min "10" --m00_max "100" --m01 "82" --m02 "80" --m03 "0"
-    python test.py --m00_min "10" --m00_max "100" --m01 "82" --m02 "75" --m03 "0"
+    #python test.py --m00_min "10" --m00_max "100" --m01 "82" --m02 "75" --m03 "0"
+    # python test.py --m00_min "5" --m00_max "105" --m01 "80" --m02 "75" --m03 "0"
+    python test.py --m00_min "3" --m00_max "105" --m01 "82" --m02 "70" --m03 "0"
 }
 
 #@ archive p3
@@ -116,7 +126,9 @@ function 6_0 () {
     # Done
     # 6_0 45 -5 -10 0
     # OLD:python test.py --m00_min "14" --m00_max "100" --m01 " -5" --m02 " -10" --m03 "0"
-    python test.py --m00_min "14" --m00_max "100" --m01 "85" --m02 "70" --m03 "0"
+    #python test.py --m00_min "14" --m00_max "100" --m01 "85" --m02 "70" --m03 "0"
+    #python test.py --m00_min "5" --m00_max "110" --m01 "81" --m02 "70" --m03 "5"
+    python test.py --m00_min "5" --m00_max "113" --m01 "81" --m02 "70" --m03 "5"
 }
 
 #@ archive p2
@@ -124,7 +136,9 @@ function 7_0 () {
     # Done
     # 7_0 45 -3 -14 0
     # OLD:python test.py --m00_min "14" --m00_max "100" --m01 " -3" --m02 " -14" --m03 "0"
-    python test.py --m00_min "17" --m00_max "100" --m01 "87" --m02 "68" --m03 "0"
+    #python test.py --m00_min "17" --m00_max "100" --m01 "87" --m02 "68" --m03 "0"
+    #python test.py --m00_min "5" --m00_max "100" --m01 "87" --m02 "65" --m03 "0"
+    python test.py --m00_min "7" --m00_max "100" --m01 "85" --m02 "65" --m03 "0"
 }
 
 #@ archive p1
@@ -138,7 +152,14 @@ function 8_0 () {
     #python test.py --m00_min "19" --m00_max "100" --m01 "85" --m02 "64" --m03 "0"
     #python test.py --m00_min "19" --m00_max "100" --m01 "88" --m02 "67" --m03 "0"
     #python test.py --m00_min "19" --m00_max "100" --m01 "88" --m02 "64" --m03 "0"
-    python test.py --m00_min "19" --m00_max "100" --m01 "88" --m02 "64" --m03 "3"
+    #python test.py --m00_min "19" --m00_max "100" --m01 "88" --m02 "64" --m03 "3"
+    python test.py --m00_min "10" --m00_max "100" --m01 "87" --m02 "64" --m03 "3"
+}
+
+function line_base_p0.5 () {
+    #python test.py --m00_min "10" --m00_max "100" --m01 "87" --m02 "64" --m03 "3"
+    #python test.py --m00_min "10" --m00_max "100" --m01 "87" --m02 "62" --m03 "3"
+    python test.py --m00_min "10" --m00_max "100" --m01 "88" --m02 "61" --m03 "3"
 }
 
 #@ archive base
@@ -147,16 +168,34 @@ function 8.5_0 () {
     # 8.5_0 21~ 2 -23 0
     # OLD:python test.py --m00_min "21" --m00_max "100" --m01 " 3" --m02 " -23" --m03 "0"
     # New Done
-    python test.py --m00_min "19" --m00_max "100" --m01 "93" --m02 "57" --m03 "0"
+    #python test.py --m00_min "19" --m00_max "100" --m01 "93" --m02 "57" --m03 "0"
+    #python test.py --m00_min "15" --m00_max "100" --m01 "93" --m02 "57" --m03 "0"
+    python test.py --m00_min "15" --m00_max "100" --m01 "92" --m02 "57" --m03 "0"
+
 }
 
+
+function line_base_m04 () {
+    #python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "45" --m03 "0"
+    cd src
+    python test.py --m00_min "18" --m00_max "90" --m01 "100" --m02 "40" --m03 "0"
+    stop
+}
+
+function line_base_m03 () {
+    cd src
+    python test.py --m00_min "15" --m00_max "95" --m01 "97" --m02 "45" --m03 "2"
+    stop
+}
 
 function line_base_m02 () {
     #python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "45" --m03 "0"
     cd src
-    python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "48" --m03 "0"
+    python test.py --m00_min "15" --m00_max "95" --m01 "95" --m02 "48" --m03 "0"
     stop
 }
+
+
 
 function line_base_m01 () {
     #python test.py --m00_min "19" --m00_max "100" --m01 "93" --m02 "57" --m03 "0"
@@ -164,7 +203,7 @@ function line_base_m01 () {
     #python test.py --m00_min "19" --m00_max "100" --m01 "96" --m02 "50" --m03 "0"
     #python test.py --m00_min "24" --m00_max "100" --m01 "96" --m02 "50" --m03 "0"
     cd src
-    python test.py --m00_min "24" --m00_max "98" --m01 "96" --m02 "50" --m03 "0"
+    python test.py --m00_min "12" --m00_max "98" --m01 "93" --m02 "52" --m03 "0"
     stop
 }
 
@@ -237,7 +276,8 @@ function line_base_p09 () {
     #python test.py --m00_min "7" --m00_max "110" --m01 "68" --m02 "89" --m03 "0"
     #python test.py --m00_min "7" --m00_max "110" --m01 "66" --m02 "93" --m03 "0"
     cd src
-    python test.py --m00_min "7" --m00_max "110" --m01 "66" --m02 "95" --m03 "0"
+    #python test.py --m00_min "7" --m00_max "110" --m01 "66" --m02 "95" --m03 "0"
+    python test.py --m00_min "-13" --m00_max "116" --m01 "73" --m02 "85" --m03 "0"
     stop
 }
 
@@ -246,7 +286,7 @@ function line_base_p10 () {
     #python test.py --m00_min "7" --m00_max "110" --m01 "60" --m02 "101" --m03 "30"
     #python test.py --m00_min "0" --m00_max "110" --m01 "62" --m02 "101" --m03 "30"
     cd src
-    python test.py --m00_min "0" --m00_max "130" --m01 "62" --m02 "101" --m03 "30"
+    python test.py --m00_min "-8" --m00_max "125" --m01 "62" --m02 "98" --m03 "30"
     stop
 }
 
@@ -259,14 +299,14 @@ function line_base_p11 () {
     #python test.py --m00_min "0" --m00_max "130" --m01 "60" --m02 "104" --m03 "0"
     #python test.py --m00_min " -10" --m00_max "130" --m01 "60" --m02 "104" --m03 "0"
     cd src
-    python test.py --m00_min " -10" --m00_max "128" --m01 "60" --m02 "104" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "123" --m01 "69" --m02 "91" --m03 "0"
     stop
 }
 
 function line_base_p12 () {
     #python test.py --m00_min " -10" --m00_max "128" --m01 "50" --m02 "114" --m03 "0"
     cd src
-    python test.py --m00_min " -10" --m00_max "128" --m01 "56" --m02 "107" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "119" --m01 "66" --m02 "95" --m03 "2"
     stop
 }
 
@@ -274,7 +314,7 @@ function line_base_p13 () {
     #python test.py --m00_min " -10" --m00_max "128" --m01 "60" --m02 "104" --m03 "0"
     #python test.py --m00_min " -10" --m00_max "128" --m01 "50" --m02 "104" --m03 "0"
     cd src
-    python test.py --m00_min " -10" --m00_max "128" --m01 "50" --m02 "114" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "128" --m01 "64" --m02 "97" --m03 "0"
     stop
 }
 
@@ -283,7 +323,7 @@ function line_base_p14 () {
     #python test.py --m00_min " -10" --m00_max "120" --m01 "45" --m02 "117" --m03 "0"
     #python test.py --m00_min " -10" --m00_max "120" --m01 "45" --m02 "117" --m03 "30"
     cd src
-    python test.py --m00_min "0" --m00_max "120" --m01 "45" --m02 "117" --m03 "30"
+    python test.py --m00_min " -13" --m00_max "117" --m01 "62" --m02 "100" --m03 "0"
     stop
 }
 
@@ -291,20 +331,20 @@ function line_base_p15 () {
     #python test.py --m00_min " -10" --m00_max "128" --m01 "50" --m02 "114" --m03 "0"
     #python test.py --m00_min " -10" --m00_max "125" --m01 "45" --m02 "114" --m03 "0"
     cd src
-    python test.py --m00_min " -10" --m00_max "120" --m01 "45" --m02 "120" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "113" --m01 "61" --m02 "102" --m03 "0"
     stop
 }
 
 function line_base_p16 () {
     #python test.py --m00_min " -10" --m00_max "120" --m01 "35" --m02 "120" --m03 "0"
     cd src
-    python test.py --m00_min " -10" --m00_max "120" --m01 "35" --m02 "127" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "109" --m01 "60" --m02 "104" --m03 "0"
     stop
 }
 
 function line_base_p17 () {
     cd src
-    python test.py --m00_min " -10" --m00_max "120" --m01 "30" --m02 "130" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "109" --m01 "58" --m02 "106" --m03 "0"
     stop
 }
 
@@ -312,7 +352,7 @@ function line_base_p18 () {
     #python test.py --m00_min " -10" --m00_max "120" --m01 "30" --m02 "133" --m03 "0"
     #python test.py --m00_min " -10" --m00_max "120" --m01 "25" --m02 "133" --m03 "0"
     cd src
-    python test.py --m00_min " -10" --m00_max "120" --m01 "25" --m02 "135" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "106" --m01 "57" --m02 "108" --m03 "0"
     stop
 }
 
@@ -327,7 +367,32 @@ function line_base_p19 () {
     #python test.py --m00_min " -10" --m00_max "120" --m01 "6" --m02 "144" --m03 "0"
     #python test.py --m00_min " -10" --m00_max "120" --m01 "4" --m02 "144" --m03 "0"
     cd src
-    python test.py --m00_min " -10" --m00_max "120" --m01 "4" --m02 "146" --m03 "0"
+    python test.py --m00_min " -13" --m00_max "106" --m01 "55" --m02 "111" --m03 "0"
+    stop
+}
+
+function line_base_p20 () {
+    cd src
+    python test.py --m00_min " -13" --m00_max "102" --m01 "53" --m02 "113" --m03 "0"
+    stop
+
+}
+
+function line_base_p21 () {
+    cd src
+    python test.py --m00_min " -13" --m00_max "102" --m01 "51" --m02 "115" --m03 "0"
+    stop
+}
+
+function line_base_p22 () {
+    cd src
+    python test.py --m00_min " -13" --m00_max "88" --m01 "48" --m02 "119" --m03 "0"
+    stop
+}
+
+function line_base_p23 () {
+    cd src
+    python test.py --m00_min " -13" --m00_max "83" --m01 "48" --m02 "120" --m03 "0"
     stop
 }
 

@@ -11,12 +11,8 @@ def sky():
     position = randint(10, 150)
 
 
-def top_of_mountain ():
+def line_of_mountain ():
 
-    pass
-
-
-def base_of_mountain ():
     pass
 
 
