@@ -14,10 +14,10 @@ def main():
     servoMotors.append(ServoMotor(Channel=2, ZeroOffset=0))
     servoMotors.append(ServoMotor(Channel=3, ZeroOffset=0))
     fuji = Fuji(servoMotors)
-    #line_of_mountain(servoMotors)
-    #snow(servoMotors)
 
-    fuji.internal_mountain()
+    #fuji.internal_mountain()
+    #fuji.sky()
+    fuji.blue_slope()
 
 
 if __name__ == "__main__":
