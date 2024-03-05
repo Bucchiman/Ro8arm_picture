@@ -4,7 +4,7 @@
 # FileName:     Fuji
 # Author:       8ucchiman
 # CreatedDate:  2024-03-04 11:30:01
-# LastModified: 2024-03-05 13:33:08
+# LastModified: 2024-03-05 14:24:01
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -17,10 +17,41 @@ class Fuji (object):
     def __init__(self, servoMotors):
         self.servoMotors = servoMotors
 
-    def __call__(self):
+    def drawing(func):
+        """
+            drawing a part of areas
+            kwargs
+             timing         [int]           ... timing for adding color            (default: 3 dot)
+             big_time       [int]           ... sleep time for adding color        (default: 3 sec)
+             small_time     [int]           ... sleep time for moving next pixel   (default: 0.7 sec)
+             noise_range    [int]           ... servoMotors[3] noise ranging, ±x   (default: 3)
+        """
 
+        def wrapper(self, *args, **kwargs):
+            track_lst = func(self, *args, **kwargs)
+            count_of_pixels = 0
+            for track_path in track_lst:
+                print(*track_path)
+                if count_of_pixels % kwargs["timing"] == 0:
+                    sleep(kwargs["bit_time"])
+                # self.servoMotors[0].setAngle(track_path[0])
+                # self.servoMotors[1].setAngle(track_path[1])
+                # self.servoMotors[2].setAngle(track_path[2])
+                # self.servoMotors[3].setAngle(track_path[3])
+                sleep(0.3)
+                # self.servoMotors[0].setAngle(track_path[0])
+                # self.servoMotors[1].setAngle(track_path[1])
+                # self.servoMotors[2].setAngle(track_path[2]+1)
+                # self.servoMotors[3].setAngle(track_path[3])
+                sleep(kwargs["small_time"])
+                count_of_pixels += 1
+        return wrapper
+
+    def __call__(self):
+        self.internal_mountain()
         pass
 
+    @drawing
     def internal_mountain(self):
         """
             山の内部
@@ -2995,6 +3026,7 @@ class Fuji (object):
         #    #    pass
         #    sleep(0.3)
 
+    @drawing
     def blue_slope (self):
         """
             斜面 (雲色)
@@ -3252,8 +3284,7 @@ class Fuji (object):
             self.servoMotors[3].setAngle(track_path[3])
             sleep(0.5)
 
-
-
+    @drawing
     def snow_ridge_line(self):
         """
             稜線 (白)
@@ -3306,6 +3337,7 @@ class Fuji (object):
             self.servoMotors[3].setAngle(track_path[3])
             sleep(0.5)
 
+    @drawing
     def snow_ridge(self):
         """
             尾根 (白)
@@ -3335,6 +3367,7 @@ class Fuji (object):
             self.servoMotors[3].setAngle(track_path[3])
             sleep(0.5)
 
+    @drawing
     def snow_slope(self):
         """
             斜面 (白)
@@ -3420,6 +3453,7 @@ class Fuji (object):
             self.servoMotors[3].setAngle(track_path[3])
             sleep(0.5)
 
+    @drawing
     def sky(self):
         """
             空 (赤:オレンジ:黄緑:白:青=1:3:3:1:2)
@@ -3478,7 +3512,7 @@ class Fuji (object):
 
         #    sleep(0.5)
 
-
+    @drawing
     def line_of_mountain (self):
         """
             山の境界線 (赤)
@@ -3583,10 +3617,10 @@ if __name__ == "__main__":
     from servo_motor import ServoMotor
     servoMotors = []
 
-    servoMotors.append(ServoMotor(Channel=0, ZeroOffset=0))
-    servoMotors.append(ServoMotor(Channel=1, ZeroOffset=0))
-    servoMotors.append(ServoMotor(Channel=2, ZeroOffset=0))
-    servoMotors.append(ServoMotor(Channel=3, ZeroOffset=0))
+    #servoMotors.append(ServoMotor(Channel=0, ZeroOffset=0))
+    #servoMotors.append(ServoMotor(Channel=1, ZeroOffset=0))
+    #servoMotors.append(ServoMotor(Channel=2, ZeroOffset=0))
+    #servoMotors.append(ServoMotor(Channel=3, ZeroOffset=0))
 
     fuji = Fuji(servoMotors)
     fuji()
