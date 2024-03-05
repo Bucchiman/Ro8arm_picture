@@ -587,6 +587,11 @@ function pos_maker () {
 }
 
 
+function setup () {
+    pip install adafruit_pca9685
+}
+
+
 #pos_maker
 
 cd src
