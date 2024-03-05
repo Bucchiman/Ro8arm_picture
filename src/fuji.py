@@ -33,26 +33,32 @@ class Fuji (object):
             for track_path in track_lst:
                 print(*track_path)
                 if count_of_pixels % kwargs["timing"] == 0:
-                    sleep(kwargs["bit_time"])
-                # self.servoMotors[0].setAngle(track_path[0])
-                # self.servoMotors[1].setAngle(track_path[1])
-                # self.servoMotors[2].setAngle(track_path[2])
-                # self.servoMotors[3].setAngle(track_path[3])
+                    self.servoMotors[0].setAngle(track_path[0])
+                    self.servoMotors[1].setAngle(track_path[1]-5)
+                    self.servoMotors[2].setAngle(track_path[2]-5)
+                    self.servoMotors[3].setAngle(track_path[3])
+                    _ = input()
+
+                    sleep(kwargs["big_time"])
+                self.servoMotors[0].setAngle(track_path[0])
+                self.servoMotors[1].setAngle(track_path[1])
+                self.servoMotors[2].setAngle(track_path[2])
+                self.servoMotors[3].setAngle(track_path[3])
                 sleep(0.3)
-                # self.servoMotors[0].setAngle(track_path[0])
-                # self.servoMotors[1].setAngle(track_path[1])
-                # self.servoMotors[2].setAngle(track_path[2]+1)
-                # self.servoMotors[3].setAngle(track_path[3])
+                self.servoMotors[0].setAngle(track_path[0])
+                self.servoMotors[1].setAngle(track_path[1])
+                self.servoMotors[2].setAngle(track_path[2]-5)
+                self.servoMotors[3].setAngle(track_path[3])
                 sleep(kwargs["small_time"])
                 count_of_pixels += 1
         return wrapper
 
     def __call__(self):
-        self.internal_mountain()
+        self.internal_mountain(timing=3, big_time=3, small_time=0.7)
         pass
 
     @drawing
-    def internal_mountain(self):
+    def internal_mountain(self, *args, **kwargs):
         """
             山の内部
             ベースとなる色 (黒, 紺)
@@ -3617,10 +3623,10 @@ if __name__ == "__main__":
     from servo_motor import ServoMotor
     servoMotors = []
 
-    #servoMotors.append(ServoMotor(Channel=0, ZeroOffset=0))
-    #servoMotors.append(ServoMotor(Channel=1, ZeroOffset=0))
-    #servoMotors.append(ServoMotor(Channel=2, ZeroOffset=0))
-    #servoMotors.append(ServoMotor(Channel=3, ZeroOffset=0))
+    servoMotors.append(ServoMotor(Channel=0, ZeroOffset=0))
+    servoMotors.append(ServoMotor(Channel=1, ZeroOffset=0))
+    servoMotors.append(ServoMotor(Channel=2, ZeroOffset=0))
+    servoMotors.append(ServoMotor(Channel=3, ZeroOffset=0))
 
     fuji = Fuji(servoMotors)
     fuji()
