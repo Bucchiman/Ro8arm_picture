@@ -11,7 +11,7 @@
 
 # 実行方法
 ロボットアームの組み立て、および、回路は[こちら](https://qiita.com/teatime77/items/39f59220cea21c2d3abc)を参照。
-```python
+```bash
 $ git clone git@github.com:Bucchiman/Ro8arm_picture.git
 $ cd Ro8arm_picture
 $ python -m venv venv
