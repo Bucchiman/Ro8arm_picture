@@ -6,12 +6,28 @@ requires-python = ">=3.11"
 dependencies = [
     "numpy>=1.26",
     "opencv-python>=4.9",
+    "pillow>=10",
+    "pillow-heif>=0.16",  # HEIC/HEIF input (iPhone photos)
     "pydantic>=2.6",
     "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# style transfer web UI on the local GPU (painter webui --backend sdxl). torch must be a CUDA build; see README.
+style = [
+    "torch>=2.7",
+    "diffusers>=0.30",
+    "transformers>=4.44",
+    "accelerate>=0.33",
+    "safetensors",
+    "gradio>=4.44",
+]
+# lightweight alternative for PCs without a large GPU: style transfer via the Gemini API (painter webui --backend gemini)
+gemini = [
+    "google-genai>=1.30",
+    "gradio>=4.44",
+]
 
 [project.scripts]
 painter = "painter.cli:main"

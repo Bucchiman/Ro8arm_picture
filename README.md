@@ -51,3 +51,38 @@ $ .venv/bin/pytest
 | キャンバス・パレット・油壺・布・筆ラックの位置、筆の種類 | `configs/machine.yaml` |
 | 細部の描き込み量（多いほど時間増） | `--threshold`, `--threshold-growth` |
 | パレット色数 | `--colors`（パレットのスロット数以下） |
+
+## スタイル変換 Web UI（`painter webui`）
+画像をアップロードすると、ローカル GPU 上の生成AIで油絵・ゴッホ風・モネ風・浮世絵・水彩・点描・フォーヴィスム（または自由なプロンプト）に変換する。
+結果を選んで「油絵シミュレーション」を押すと、上の painter パイプラインにそのまま流し、キャンバス・パレット・工程動画・G-code を表示する。
+
+- モデル：SDXL img2img ＋ ControlNet(Canny)。輪郭（構図）を保ったまま画風だけを変える。初回起動時に Hugging Face から約 10GB を取得する
+- 必要なもの：VRAM 12GB 以上の空き（RTX 5090 で 1 枚約 3.5 秒、ピーク 11.4GiB）。空きが足りないときは自動で CPU offload に切り替わる
+- 入力は jpg / png / webp / HEIC(iPhone) など。HEIC は EXIF の向きを反映して読み込む（`painter run photo.heic` も可）
+- 出力は `out/webui/<日時>/`（input.png, styled_N.png, style.json, sim_N/）
+
+```bash
+$ uv pip install -e '.[dev,style]' --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match
+#   社内プロキシ環境では SSL_CERT_FILE=<CA bundle> を設定し、uv に --native-tls を付ける
+$ .venv/bin/painter webui                  # http://127.0.0.1:7860
+$ .venv/bin/painter webui --host 0.0.0.0   # 他の PC からも開く
+$ .venv/bin/painter webui --offload        # 常に CPU offload（GPU を他の処理と共用するとき）
+```
+
+### GPU が弱い PC では Gemini（クラウド）で変換する
+VRAM 12GB 未満や GPU なしの PC では、`--backend auto`（既定）が自動で Gemini API を使う。torch は不要（インストール約 500MB）。
+アップロードした画像は Google に送信され、生成ごとに API の料金がかかる。Gemini では strength / ControlNet / steps は使わず（画面からも隠れる）、「構図はそのまま、画風だけ変える」ように指示している。
+
+```bash
+$ uv venv && uv pip install -e '.[gemini]'
+$ export GEMINI_API_KEY=<Google AI Studio で発行したキー>
+$ .venv/bin/painter webui                          # auto: GPU が弱ければ Gemini
+$ .venv/bin/painter webui --backend gemini         # GPU があっても Gemini を使う
+$ .venv/bin/painter webui --gemini-model <モデル名>  # 既定 gemini-2.5-flash-image
+```
+
+| 設定 | 意味 |
+| --- | --- |
+| strength | 元画像からどれだけ離れるか。0.8 以下だと写真のまま残りやすい（既定 0.95） |
+| ControlNet scale | 輪郭の保持の強さ。上げると構図に忠実、下げると画風が強く出る（既定 0.45） |
+| 枚数 / seed | seed を 1 ずつ変えて複数枚生成。ギャラリーで選んだ 1 枚をシミュレーションする |

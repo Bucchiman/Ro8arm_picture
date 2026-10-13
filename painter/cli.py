@@ -4,6 +4,7 @@
   painter simulate out/program.json -o out    virtual canvas, process video, report
   painter gcode out/program.json -o out/program.gcode
   painter run IMAGE -o out                    all of the above
+  painter webui                               upload -> style transfer -> simulate (needs .[style] or .[gemini])
 """
 
 from __future__ import annotations
@@ -105,6 +106,13 @@ def cmd_run(args) -> None:
     cmd_gcode(args)
 
 
+def cmd_webui(args) -> None:
+    from painter.webui import launch
+
+    launch(args.config, args.host, args.port, True if args.offload else None, args.px_per_mm, args.backend,
+           args.gemini_model)
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="painter")
     ap.add_argument("-c", "--config", default=str(DEFAULT_CONFIG))
@@ -145,6 +153,16 @@ def main(argv: list[str] | None = None) -> None:
     sim_args(p)
     p.add_argument("-o", "--output", default="out")
     p.set_defaults(func=cmd_run)
+
+    p = sub.add_parser("webui")
+    p.add_argument("--host", default="127.0.0.1", help="0.0.0.0 to open it to other machines")
+    p.add_argument("--port", type=int, default=7860)
+    p.add_argument("--backend", choices=["auto", "sdxl", "gemini"], default="auto",
+                   help="auto = local SDXL if the GPU has >= 12 GiB VRAM, else Gemini (needs GEMINI_API_KEY)")
+    p.add_argument("--offload", action="store_true",
+                   help="sdxl: always use CPU offload (default: only when free VRAM is short)")
+    p.add_argument("--gemini-model", default=None, help="gemini: model name (default gemini-2.5-flash-image)")
+    p.set_defaults(func=cmd_webui)
 
     args = ap.parse_args(argv)
     args.func(args)
