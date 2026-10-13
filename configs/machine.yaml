@@ -1,0 +1,70 @@
+# Machine layout for the gantry painting machine (all units: mm, machine coordinates).
+# Phase 1: values are design targets for the simulator. Re-measure after the 3D-printed prototype is built.
+
+canvas:
+  # F6 canvas (410 x 318 mm). origin = machine coordinate of the canvas top-left corner.
+  width: 410
+  height: 318
+  origin: [0, 0]
+  # Z height where the brush tip just touches the canvas surface.
+  surface_z: 0.0
+
+motion:
+  travel_z: 15.0          # safe Z for travel moves
+  hover_z: 3.0            # Z just above the canvas before pressing in
+  travel_speed: 150.0     # mm/s
+  z_speed: 20.0           # mm/s
+  paint_speed: 60.0       # nominal mm/s while painting
+
+# Paint palette: one slot per pre-mixed color. The human mixes and places paint here.
+palette:
+  origin: [440, 20]       # slot 0 center
+  pitch: [40, 40]         # slot spacing x/y
+  columns: 2
+  slots: 12
+  slot_capacity: 100.0    # paint units a full slot holds
+  refill_threshold: 15.0  # pause for human refill when below this
+
+# Oil jar for washing the brush between colors.
+wash:
+  position: [530, 60]
+  radius: 25
+  depth_z: -20.0          # brush dip depth in the jar
+  circles: 6              # number of scrubbing circles
+
+# Rag for wiping solvent/paint off the brush after washing.
+wipe:
+  position: [530, 160]
+  length: 60
+  passes: 3
+
+# Brush rack for the tool changer.
+brush_rack:
+  origin: [530, 230]
+  pitch: 30
+  # Brushes are drawn coarse -> fine; the stroke generator uses this order for its layers.
+brushes:
+  - id: flat_large
+    kind: flat
+    width: 20.0           # stroke width at full pressure
+    press_depth: 4.0      # Z travel from surface to full pressure
+    capacity: 900.0       # stroke length (mm) one dip can paint at full pressure
+    paint_per_dip: 2.0    # paint units taken from the slot per dip
+  - id: flat_medium
+    kind: flat
+    width: 10.0
+    press_depth: 3.0
+    capacity: 600.0
+    paint_per_dip: 1.0
+  - id: round_medium
+    kind: round
+    width: 5.0
+    press_depth: 2.5
+    capacity: 450.0
+    paint_per_dip: 0.6
+  - id: round_small
+    kind: round
+    width: 2.5
+    press_depth: 1.5
+    capacity: 300.0
+    paint_per_dip: 0.3

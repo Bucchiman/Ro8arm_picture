@@ -19,3 +19,35 @@ $ pip install opencv-python adafruit_pca9685
 $ sudo chmod 777 /dev/i2c-1
 $ python ./src/fuji.py
 ```
+
+# painter（汎用油絵マシン / 開発中）
+任意の画像を、複数の筆で人間のような筆運びの油絵にするための新しいパイプライン。
+機構は XY ガントリー + Z(筆圧) + 筆回転軸 + ツールチェンジャー（3D プリンタでプロトタイプ予定）、制御は Klipper を想定。
+フェーズ1はシミュレータで検証する。旧ロボットアーム版（`src/`）はそのまま残している。
+
+```
+入力画像 → 色解析(N色パレット) → ストローク生成(粗い筆→細い筆) → 工程計画(筆替え/洗浄/補充) → PaintProgram(JSON)
+                                                                         ├→ シミュレータ（仮想キャンバス・工程動画・レポート）
+                                                                         └→ Klipper G-code
+```
+
+- 色替え時は必ず「油壺で洗浄 → 布で拭き取り → 新しい色を取る」。筆はラックに戻す前にも洗浄する
+- 絵の具が減ったスロットは一時停止（`REFILL_PAUSE`）して人間が補充 → `RESUME`
+- 人間が混色すべき色とスロット番号は `palette_sheet.png` に出力
+
+```bash
+$ uv venv && uv pip install -e '.[dev]'
+$ .venv/bin/painter run date/raw_images/gemini_fuji_04.jpeg -o out/fuji04 --colors 10 --video
+#   out/fuji04/palette_sheet.png  パレットに置く色
+#   out/fuji04/canvas.png         シミュレーション結果
+#   out/fuji04/process.mp4        筆替え・洗浄を含む工程動画
+#   out/fuji04/report.json        ストローク数・洗浄回数・推定時間・色別使用量・SSIM/ΔE
+#   out/fuji04/program.gcode      Klipper 用 G-code（マクロは klipper/macros.cfg）
+$ .venv/bin/pytest
+```
+
+| 設定 | 場所 |
+| --- | --- |
+| キャンバス・パレット・油壺・布・筆ラックの位置、筆の種類 | `configs/machine.yaml` |
+| 細部の描き込み量（多いほど時間増） | `--threshold`, `--threshold-growth` |
+| パレット色数 | `--colors`（パレットのスロット数以下） |
