@@ -1,0 +1,81 @@
+{
+  "note": "design values; jog only marker 0 (rig_plan 3.2). head: origin = nozzle tip",
+  "head": {
+    "brush_offset_from_nozzle": [
+      0.0,
+      -24.0,
+      -45.0
+    ],
+    "stroke_mm": 12.0,
+    "spring_preload_mm": 4.0,
+    "height_adjust_mm": [
+      -8.0,
+      8.0
+    ]
+  },
+  "bed": {
+    "markers": {
+      "0": [
+        0.0,
+        0.0
+      ],
+      "1": [
+        165.6,
+        0.0
+      ],
+      "2": [
+        165.6,
+        -125.6
+      ],
+      "3": [
+        0.0,
+        -125.6
+      ]
+    },
+    "marker_size_mm": 20.0,
+    "draw_area": {
+      "center": [
+        82.8,
+        -62.8
+      ],
+      "size": [
+        136.0,
+        96.0
+      ]
+    },
+    "stations": {
+      "paint_a": {
+        "center": [
+          11.6,
+          -167.8
+        ],
+        "diameter": 40.0
+      },
+      "paint_b": {
+        "center": [
+          55.4,
+          -167.8
+        ],
+        "diameter": 40.0
+      },
+      "wash": {
+        "center": [
+          104.7,
+          -167.8
+        ],
+        "diameter": 51.0
+      },
+      "wipe": {
+        "center": [
+          154.0,
+          -167.8
+        ],
+        "size": [
+          40.0,
+          44.0
+        ]
+      }
+    },
+    "wash_dish_height_max_mm": 30.0
+  }
+}
