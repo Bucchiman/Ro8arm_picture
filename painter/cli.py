@@ -7,6 +7,7 @@
   painter inspect out/program.json -o out/inspect [--stroke N ...]   close-up of single strokes
   painter gcode-sim out/program.gcode -o out/gcode_sim [--video]     run the G-code (with Klipper macros) + checks
   painter loop IMAGE -o out/loop [--video]    closed loop: photograph the canvas after every layer, replan from it
+  painter -c configs/machine_final.yaml twin IMAGE -o out/twin    3D digital twin viewer of the final machine
 """
 
 from __future__ import annotations
@@ -273,6 +274,22 @@ def cmd_run(args) -> None:
     cmd_gcode(args)
 
 
+def cmd_twin(args) -> None:
+    from painter.twin.export import build_twin, write_viewer
+
+    config = load_config(args.config)
+    out = Path(args.output)
+    program, _ = build_program(args.image, config, args.colors, args.px_per_mm, args.seed, args.threshold,
+                               args.threshold_growth, args.max_strokes_per_layer)
+    data, report = build_twin(program, config, Path(args.macros).read_text(encoding="utf-8"), cv2.cvtColor(cv2.imread(args.image), cv2.COLOR_BGR2RGB),
+                              args.title or Path(args.image).stem, args.px_per_mm)
+    index = write_viewer(data, out)
+    size = (out / "twin_data.json").stat().st_size / 2**20
+    print(f"G-code sim: {report['total_time_h']} h, {report['strokes_rebuilt']} strokes, "
+          f"errors {report['errors']}, warnings {report['warnings']}")
+    print(f"wrote {index} + twin_data.json ({size:.1f} MB)   view: python -m http.server -d {out}")
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="painter")
     ap.add_argument("-c", "--config", default=str(DEFAULT_CONFIG))
@@ -344,6 +361,14 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--position-noise", type=float, default=0.6, help="per-stroke position error sigma (mm)")
     g.add_argument("--mix-error", type=float, default=6.0, help="palette color mixing error sigma (RGB)")
     p.set_defaults(func=cmd_loop)
+
+    p = sub.add_parser("twin", help="3D digital twin: replay the machine painting the image in a browser viewer")
+    plan_args(p)
+    p.add_argument("-o", "--output", default="out/twin")
+    p.add_argument("--macros", default=str(DEFAULT_MACROS),
+                   help="macro template; its station variables are replaced with the config's positions")
+    p.add_argument("--title", default=None, help="name shown in the viewer (default: image file name)")
+    p.set_defaults(func=cmd_twin)
 
     p = sub.add_parser("run")
     plan_args(p)

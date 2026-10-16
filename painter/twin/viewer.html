@@ -1,0 +1,556 @@
+<title>Ro8arm デジタルツイン</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: workshop console. A large 3D stage of the machine on the left, a narrow instrument column on the
+   right (activity, brush, progress, canvas), the time line across the bottom with tool-change / refill ticks. */
+:root {
+  --bg: #e9edf1;          /* studio wall, cool grey biased to the prussian accent */
+  --panel: #f8f9fb;
+  --ink: #18202b;
+  --muted: #5a6575;
+  --line: #cfd6de;
+  --accent: #23507d;      /* prussian blue: controls, tool changes */
+  --warm: #b4532a;        /* burnt sienna: paint, refill pauses */
+  --ok: #2e7d4f;
+  --stage: #dfe4ea;       /* 3D background */
+  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151b; --panel: #181e26; --ink: #e5e9ef; --muted: #96a1b0; --line: #2a333f;
+    --accent: #7fb0e3; --warm: #e58a5d; --ok: #6cc28f; --stage: #1b222b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151b; --panel: #181e26; --ink: #e5e9ef; --muted: #96a1b0; --line: #2a333f;
+  --accent: #7fb0e3; --warm: #e58a5d; --ok: #6cc28f; --stage: #1b222b; color-scheme: dark;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px 16px; box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: border-box; }
+.app { display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px; height: 100%; min-height: 560px; }
+header { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.55rem; margin: 0; letter-spacing: 0.02em;
+  text-wrap: balance; }
+.sub { color: var(--muted); font-size: 0.86rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.chip { font-family: var(--font-data); font-size: 0.74rem; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+.chip.ng { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 45%, transparent); }
+
+.stage { position: relative; min-height: 0; border-radius: 6px; overflow: hidden; background: var(--stage);
+  border: 1px solid var(--line); }
+.stage canvas.gl { display: block; width: 100%; height: 100%; }
+.views { position: absolute; top: 10px; left: 10px; display: flex; gap: 4px; flex-wrap: wrap; }
+.views button, .ctrl button, .speed button {
+  font: 500 0.8rem var(--font-body); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 4px; padding: 4px 10px; cursor: pointer;
+}
+.views button[aria-pressed="true"], .speed button[aria-pressed="true"] {
+  background: var(--accent); border-color: var(--accent); color: var(--panel); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.activity { position: absolute; left: 10px; bottom: 10px; background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; font-size: 0.86rem; max-width: calc(100% - 20px); }
+.activity b { font-weight: 700; }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--muted);
+  padding: 24px; }
+
+aside { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto; }
+section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+.card h2 { font: 700 0.72rem var(--font-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  margin: 0 0 8px; }
+dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; margin: 0; }
+dt { color: var(--muted); font-size: 0.82rem; }
+dd { margin: 0; font-family: var(--font-data); font-size: 0.82rem; font-variant-numeric: tabular-nums; text-align: right;
+  min-width: 0; overflow-wrap: anywhere; }
+.brushrow { display: flex; align-items: center; gap: 10px; }
+.swatch { width: 34px; height: 34px; border-radius: 4px; border: 1px solid var(--line); flex: none;
+  background: repeating-linear-gradient(45deg, transparent 0 4px, color-mix(in srgb, var(--muted) 25%, transparent) 4px 8px); }
+.bar { height: 6px; background: color-mix(in srgb, var(--muted) 18%, transparent); border-radius: 3px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--warm); width: 0; }
+.bar.acc > i { background: var(--accent); }
+.canvasview { width: 100%; height: auto; display: block; border-radius: 3px; border: 1px solid var(--line);
+  background: #fff; aspect-ratio: 410 / 318; }
+.refs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.refs figure { margin: 0; min-width: 0; }
+.refs img { width: 100%; display: block; border-radius: 3px; border: 1px solid var(--line); }
+.refs figcaption { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+details summary { cursor: pointer; font-size: 0.84rem; }
+details ul { margin: 8px 0 0; padding-left: 1.1em; font-size: 0.82rem; color: var(--muted); }
+details li { margin: 2px 0; }
+
+footer { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; }
+.ctrl { display: flex; gap: 6px; }
+.ctrl button { min-width: 44px; font-weight: 700; }
+.time { font-family: var(--font-data); font-size: 0.82rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.track { position: relative; min-width: 0; }
+.track input[type=range] { width: 100%; margin: 0; accent-color: var(--accent); }
+.ticks { display: block; width: 100%; height: 12px; }
+.speed { display: flex; gap: 4px; flex-wrap: wrap; grid-column: 1 / -1; align-items: center; }
+.speed span { color: var(--muted); font-size: 0.8rem; margin-right: 4px; }
+.legend { margin-left: auto; display: flex; gap: 12px; color: var(--muted); font-size: 0.76rem; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+@media (max-width: 820px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 62vh auto auto; height: auto; }
+  aside { overflow: visible; }
+  footer { grid-row: 3; }
+  .legend { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="app">
+  <header>
+    <h1>Ro8arm デジタルツイン</h1>
+    <span class="sub" id="subtitle">最終実機（平台プロッタ型）が 1 枚を描く工程を、G-code シミュレータの動きで再生します</span>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <div class="stage" id="stage">
+    <div class="loading" id="loading">データを読み込んでいます…</div>
+    <div class="views" role="group" aria-label="視点">
+      <button type="button" id="v-over" aria-pressed="true">全体</button>
+      <button type="button" id="v-top" aria-pressed="false">真上</button>
+      <button type="button" id="v-head" aria-pressed="false">ヘッド追従</button>
+      <button type="button" id="v-station" aria-pressed="false">ステーション</button>
+    </div>
+    <div class="activity" id="activity"><b id="act-label">—</b>　<span id="act-time"></span></div>
+  </div>
+
+  <aside>
+    <section class="card">
+      <h2>いまの作業</h2>
+      <dl>
+        <dt>工程</dt><dd id="s-ctx">—</dd>
+        <dt>ヘッド X / Y</dt><dd id="s-xy">—</dd>
+        <dt>Z（筆先）</dt><dd id="s-z">—</dd>
+        <dt>回転 A</dt><dd id="s-a">—</dd>
+      </dl>
+    </section>
+    <section class="card">
+      <h2>筆</h2>
+      <div class="brushrow">
+        <div class="swatch" id="b-swatch"></div>
+        <div style="min-width:0;flex:1">
+          <div id="b-name" style="font-weight:700">—</div>
+          <div class="sub" id="b-paint">絵の具なし</div>
+          <div class="bar" style="margin-top:6px" title="筆に残っている絵の具"><i id="b-load"></i></div>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>進み具合</h2>
+      <dl>
+        <dt>ストローク</dt><dd id="p-strokes">—</dd>
+        <dt>筆替え</dt><dd id="p-tools">—</dd>
+        <dt>洗浄</dt><dd id="p-wash">—</dd>
+        <dt>補充の一時停止</dt><dd id="p-pause">—</dd>
+      </dl>
+      <div class="bar acc" style="margin-top:10px"><i id="p-bar"></i></div>
+    </section>
+    <section class="card">
+      <h2>キャンバス</h2>
+      <canvas class="canvasview" id="canvas2d" width="820" height="636"></canvas>
+      <div class="refs" style="margin-top:8px">
+        <figure><img id="img-source" alt="入力画像"><figcaption>入力画像</figcaption></figure>
+        <figure><img id="img-final" alt="シミュレータの完成予想"><figcaption>完成予想（Python レンダラ）</figcaption></figure>
+      </div>
+    </section>
+    <section class="card">
+      <details>
+        <summary>最終実機の構成（docs/rig_plan.md §2）</summary>
+        <ul>
+          <li>平台プロッタ型。キャンバスとステーションは固定、ガントリーが上を動く（作業範囲 約 700×450mm）</li>
+          <li>アルミフレーム 2020/2040、XY はベルト駆動</li>
+          <li>Z は送りねじ＋ばね付きスライド（ばねの縮みで筆圧を決める）</li>
+          <li>回転 A はヘッド側のモーターからベルトで筆ホルダーだけを回す（回転制限なし）</li>
+          <li>筆は磁石＋キネマティック位置決めのホルダーで、ラックから着脱</li>
+          <li>12 穴の陶器パレット、油壺、拭き取り布</li>
+          <li>真上の固定カメラ（拡散照明＋直交偏光）で層ごとに撮影</li>
+          <li>寸法は設計目標値（configs/machine_final.yaml）。洗浄は壺 1 つで再現（2 つ目は未対応）</li>
+        </ul>
+      </details>
+    </section>
+  </aside>
+
+  <footer>
+    <div class="ctrl">
+      <button type="button" id="play" aria-label="再生 / 一時停止">❚❚</button>
+    </div>
+    <div class="track">
+      <input type="range" id="seek" min="0" max="1000" step="1" value="0" aria-label="再生位置">
+      <canvas class="ticks" id="ticks" width="1200" height="12" aria-hidden="true"></canvas>
+    </div>
+    <div class="time" id="time">00:00:00 / 00:00:00</div>
+    <div class="speed" role="group" aria-label="再生速度">
+      <span>速度</span>
+      <button type="button" data-speed="1" aria-pressed="false">実時間</button>
+      <button type="button" data-speed="30" aria-pressed="false">30×</button>
+      <button type="button" data-speed="300" aria-pressed="false">300×</button>
+      <button type="button" data-speed="1200" aria-pressed="true">1200×</button>
+      <button type="button" data-speed="6000" aria-pressed="false">6000×</button>
+      <div class="legend"><span><i style="background:var(--accent)"></i>筆替え</span><span><i style="background:var(--warm)"></i>補充</span></div>
+    </div>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const CTX_LABEL = {
+  stroke: "描画", program: "準備", TOOL_CHANGE: "筆替え", TOOL_PICK: "筆を取る", TOOL_PLACE: "筆を戻す",
+  DIP: "絵の具を取る", WASH: "油壺で洗浄", WIPE: "布で拭き取り", REFILL_PAUSE: "補充のため一時停止",
+  PAINTER_START: "原点復帰", PAINTER_END: "終了", CAPTURE: "撮影", CAMERA_CAPTURE: "撮影",
+};
+const fmt = (s) => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+const nf = new Intl.NumberFormat("ja-JP");
+
+async function unpack(b64, Type) {
+  const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const stream = new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const buf = await new Response(stream).arrayBuffer();
+  return new Type(buf);
+}
+function lowerBound(arr, x) { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] <= x) lo = m + 1; else hi = m; } return lo - 1; }
+
+async function load() {
+  if (typeof DecompressionStream === "undefined") throw new Error("このブラウザは gzip の展開（DecompressionStream）に対応していません。最新の Chrome / Edge / Safari / Firefox で開いてください。");
+  const res = await fetch("twin_data.json");
+  if (!res.ok) throw new Error(`twin_data.json を読み込めませんでした（${res.status}）`);
+  const D = await res.json();
+  const M = D.motion, S = D.strokes;
+  const [t, xy, z, a] = await Promise.all([unpack(M.t, Float64Array), unpack(M.xy, Uint16Array), unpack(M.z, Int16Array), unpack(M.a, Float32Array)]);
+  const [t0, t1, color, brush, loadA, npts, sxy, pres, ang] = await Promise.all([
+    unpack(S.t0, Float32Array), unpack(S.t1, Float32Array), unpack(S.color, Int8Array), unpack(S.brush, Uint8Array),
+    unpack(S.load, Uint8Array), unpack(S.npts, Uint16Array), unpack(S.xy, Uint16Array), unpack(S.pressure, Uint8Array), unpack(S.angle, Uint16Array)]);
+  const off = new Uint32Array(S.n + 1); for (let i = 0; i < S.n; i++) off[i + 1] = off[i] + npts[i];
+  return { D, mo: { t, xy, z, a, ctxT: Float64Array.from(M.ctx_t), ctxI: M.ctx_i, ctxN: M.ctx_names },
+           st: { n: S.n, t0, t1, color, brush, load: loadA, off, xy: sxy, pres, ang } };
+}
+
+/* ---------------------------------------------------------------- canvas painting (same rules as sim/renderer.py) */
+class Painter {
+  constructor(el, data, pxmm) {
+    this.el = el; this.D = data.D; this.st = data.st; this.s = pxmm;
+    this.base = document.createElement("canvas"); this.base.width = el.width; this.base.height = el.height;
+    this.layer = document.createElement("canvas"); this.layer.width = el.width; this.layer.height = el.height;
+    this.bctx = this.base.getContext("2d"); this.lctx = this.layer.getContext("2d"); this.vctx = el.getContext("2d");
+    this.colors = {}; for (const [k, v] of Object.entries(this.D.palette)) this.colors[k] = v; this.colors[-1] = "#808080";
+    this.drawn = 0; this.clear();
+  }
+  clear() { this.bctx.fillStyle = "#ffffff"; this.bctx.fillRect(0, 0, this.base.width, this.base.height); this.drawn = 0; }
+  stamps(ctx, i, frac) {
+    const st = this.st, s = this.s, b = this.D.machine.brushes[st.brush[i]];
+    const wpx = b.width * s, a0 = st.off[i], n = st.off[i + 1] - a0;
+    const P = []; for (let k = 0; k < n; k++) { const j = a0 + k; P.push([st.xy[2 * j] * 0.01 * s, st.xy[2 * j + 1] * 0.01 * s, st.pres[j] / 255, st.ang[j] / 100]); }
+    const cum = [0]; for (let k = 1; k < n; k++) cum.push(cum[k - 1] + Math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1]));
+    const L = cum[n - 1], step = Math.max(wpx * 0.15, 0.7), m = Math.max(Math.floor(L / step) + 2, 2);
+    const until = L * frac; let k = 0; let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+    for (let q = 0; q < m; q++) {
+      const d = L * q / (m - 1); if (d > until + 1e-6) break;
+      while (k < n - 2 && cum[k + 1] < d) k++;
+      const seg = Math.max(cum[k + 1] - cum[k], 1e-9), u = Math.min(Math.max((d - cum[k]) / seg, 0), 1);
+      const x = P[k][0] + (P[k + 1][0] - P[k][0]) * u, y = P[k][1] + (P[k + 1][1] - P[k][1]) * u;
+      const p = P[k][2] + (P[k + 1][2] - P[k][2]) * u;
+      let an = P[k][3]; const an1 = P[k + 1][3]; let da = ((an1 - an + 540) % 360) - 180; an += da * u;
+      if (p <= 0.02) continue;
+      const size = wpx * (0.35 + 0.65 * p);
+      ctx.beginPath();
+      if (b.kind === "flat") ctx.ellipse(x, y, Math.max(wpx * 0.12, 0.8), size / 2, an * Math.PI / 180, 0, Math.PI * 2);
+      else ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+      ctx.fill();
+      const r = size / 2 + 2; minx = Math.min(minx, x - r); miny = Math.min(miny, y - r); maxx = Math.max(maxx, x + r); maxy = Math.max(maxy, y + r);
+    }
+    return maxx > minx ? [Math.max(0, Math.floor(minx)), Math.max(0, Math.floor(miny)), Math.ceil(maxx), Math.ceil(maxy)] : null;
+  }
+  composite(target, i, frac) {
+    const st = this.st, l = this.lctx;
+    l.fillStyle = this.colors[st.color[i]] || "#808080";
+    const bb = this.stamps(l, i, frac); if (!bb) return;
+    const w = Math.min(bb[2], this.base.width) - bb[0], h = Math.min(bb[3], this.base.height) - bb[1];
+    if (w <= 0 || h <= 0) return;
+    const l0 = st.load[2 * i] / 255, l1 = st.load[2 * i + 1] / 255, ld = l0 + (l1 - l0) * frac * 0.5;
+    target.globalAlpha = Math.min(0.95 * (0.35 + 0.65 * ld), 1);
+    target.drawImage(this.layer, bb[0], bb[1], w, h, bb[0], bb[1], w, h);
+    target.globalAlpha = 1;
+    l.clearRect(bb[0], bb[1], w, h);
+  }
+  /* bring the base canvas to "all strokes finished before t"; returns false if more work remains (time-sliced) */
+  advance(t, budgetMs) {
+    const st = this.st, start = performance.now();
+    while (this.drawn < st.n && st.t1[this.drawn] <= t) {
+      this.composite(this.bctx, this.drawn, 1); this.drawn++;
+      if (performance.now() - start > budgetMs) return false;
+    }
+    return true;
+  }
+  present(t) {
+    this.vctx.drawImage(this.base, 0, 0);
+    const i = this.drawn;
+    if (i < this.st.n && this.st.t0[i] <= t && t < this.st.t1[i]) {
+      const frac = (t - this.st.t0[i]) / Math.max(this.st.t1[i] - this.st.t0[i], 1e-6);
+      this.composite(this.vctx, i, Math.min(Math.max(frac, 0), 1));
+      return i;
+    }
+    return -1;
+  }
+}
+
+/* ---------------------------------------------------------------- machine model (mm; three Y = machine Z, three Z = machine Y) */
+function buildScene(D, paintCanvas) {
+  const M = D.machine;
+  const scene = new THREE.Scene();
+  const mat = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.6, metalness: 0.1 }, o));
+  const alu = mat(0xb9c0c8, { metalness: 0.55, roughness: 0.35 }), dark = mat(0x2b3038, { roughness: 0.5 });
+  const box = (w, h, d, m, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; scene.add(o); return o; };
+  const cyl = (r, h, m, x, y, z, seg = 32, parent = scene) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), m); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o; };
+
+  const [X0, X1] = M.motion.x_range, [Y0, Y1] = M.motion.y_range;
+  const W = X1 - X0, Dp = Y1 - Y0, cx = (X0 + X1) / 2, cz = (Y0 + Y1) / 2;
+  const TABLE = -25, RAIL_Y = 230;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8090a0, 0.65));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(cx - 300, 900, cz + 600); sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -700, right: 700, top: 700, bottom: -700, near: 10, far: 2500 });
+  sun.target.position.set(cx, 0, cz); scene.add(sun, sun.target);
+
+  // table + frame
+  box(W + 160, 18, Dp + 160, mat(0x9aa3ad, { roughness: 0.8 }), cx, TABLE - 9, cz);
+  for (const x of [X0 - 50, X1 + 50]) {
+    box(20, 40, Dp + 140, alu, x, RAIL_Y, cz);                                  // 2040 rail along Y
+    for (const z of [Y0 - 70, Y1 + 70]) box(20, RAIL_Y - TABLE, 20, alu, x, (RAIL_Y + TABLE) / 2, z);
+  }
+  box(W + 120, 20, 20, alu, cx, RAIL_Y - 10, Y1 + 70);                         // rear cross member
+
+  // canvas (F6) with the live paint texture
+  const [ox, oy] = M.canvas.origin, [cw, chh] = M.canvas.size;
+  box(cw, 20, chh, mat(0xf3f1ec, { roughness: 0.9 }), ox + cw / 2, -10.5, oy + chh / 2);
+  const tex = new THREE.CanvasTexture(paintCanvas); tex.anisotropy = 4;
+  if ("encoding" in tex) tex.encoding = THREE.sRGBEncoding;
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(cw, chh), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }));
+  top.rotation.x = -Math.PI / 2; top.position.set(ox + cw / 2, 0.05, oy + chh / 2); top.receiveShadow = true; scene.add(top);
+
+  // palette dish (12 wells)
+  const P = M.palette, px = P.map((p) => p[0]), pz = P.map((p) => p[1]);
+  const pminx = Math.min(...px) - 22, pmaxx = Math.max(...px) + 22, pminz = Math.min(...pz) - 22, pmaxz = Math.max(...pz) + 22;
+  box(pmaxx - pminx, 12, pmaxz - pminz, mat(0xf4f4f2, { roughness: 0.3 }), (pminx + pmaxx) / 2, -6.5, (pminz + pmaxz) / 2);
+  P.forEach((p, i) => {
+    const c = D.palette[i] || "#dddddd";
+    cyl(15, 1.2, mat(0xe6e6e3, { roughness: 0.3 }), p[0], -0.2, p[1]);
+    const pile = cyl(10, 2.2, mat(new THREE.Color(c), { roughness: 0.25 }), p[0], 0.7, p[1], 24); pile.scale.set(1, 1, 0.85);
+  });
+  // wash jar (glass + solvent)
+  const wj = M.wash, wr = wj.radius + 5;
+  cyl(wr, 34, mat(0xcfe3ea, { transparent: true, opacity: 0.35, roughness: 0.05, metalness: 0 }), wj.position[0], TABLE + 17, wj.position[1]);
+  cyl(wr - 2, 12, mat(0xc79a52, { transparent: true, opacity: 0.55, roughness: 0.1 }), wj.position[0], TABLE + 7, wj.position[1]);
+  // rag
+  box(M.wipe.length + 16, 4, 30, mat(0xd8cbb8, { roughness: 1 }), M.wipe.position[0], -2, M.wipe.position[1]);
+  // brush rack
+  const R = M.rack, rx = R[0][0];
+  box(14, 30, (R[R.length - 1][1] - R[0][1]) + 36, alu, rx + 14, 15, (R[0][1] + R[R.length - 1][1]) / 2);
+  // overhead camera on a mast, crossed polarizers, two diffused light bars
+  const mastX = X1 + 50, camY = 760;
+  box(20, camY - TABLE, 20, alu, mastX, (camY + TABLE) / 2, oy + chh / 2);
+  box(mastX - (ox + cw / 2) + 20, 20, 20, alu, (mastX + ox + cw / 2) / 2, camY, oy + chh / 2);
+  box(46, 40, 46, dark, ox + cw / 2, camY - 30, oy + chh / 2);
+  cyl(16, 22, mat(0x15181d, { metalness: 0.4 }), ox + cw / 2, camY - 61, oy + chh / 2);
+  for (const dz of [-150, 150]) box(cw * 0.8, 8, 24, mat(0xffffff, { emissive: 0xf2f2ea, emissiveIntensity: 0.6 }), ox + cw / 2, camY - 30, oy + chh / 2 + dz);
+
+  // gantry: beam along X moving in Y; carriage moving in X; Z slide; spring holder; A pulley; brush
+  const gantry = new THREE.Group(); scene.add(gantry);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(W + 120, 40, 20), alu); beam.position.set(cx, RAIL_Y + 40, 0); beam.castShadow = true; gantry.add(beam);
+  for (const x of [X0 - 50, X1 + 50]) { const e = new THREE.Mesh(new THREE.BoxGeometry(30, 70, 60), dark); e.position.set(x, RAIL_Y + 30, 0); e.castShadow = true; gantry.add(e); }
+  const carriage = new THREE.Group(); gantry.add(carriage);
+  const cb = new THREE.Mesh(new THREE.BoxGeometry(70, 70, 36), dark); cb.position.set(0, RAIL_Y + 40, -28); cb.castShadow = true; carriage.add(cb);
+  const zmot = new THREE.Mesh(new THREE.BoxGeometry(42, 42, 42), mat(0x1d2127)); zmot.position.set(0, RAIL_Y + 96, -28); carriage.add(zmot);
+  const zslide = new THREE.Group(); carriage.add(zslide);          // moves with machine Z; origin = brush tip
+  const zplate = new THREE.Mesh(new THREE.BoxGeometry(56, 150, 8), alu); zplate.position.set(0, 175, -50); zplate.castShadow = true; zslide.add(zplate);
+  const amot = new THREE.Mesh(new THREE.BoxGeometry(36, 36, 36), mat(0x1d2127)); amot.position.set(30, 205, -30); zslide.add(amot);
+  const belt = new THREE.Mesh(new THREE.BoxGeometry(34, 4, 6), mat(0x111111)); belt.position.set(15, 160, -15); zslide.add(belt);
+  const spring = new THREE.Group(); zslide.add(spring);            // spring-loaded holder (pushed up on contact)
+  const coil = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 34, 20, 1, true), mat(0x9a9fa6, { metalness: 0.8, wireframe: true }));
+  coil.position.set(0, 128, 0); zslide.add(coil);
+  const rot = new THREE.Group(); rot.position.set(0, 0, 0); spring.add(rot);
+  cyl(14, 10, mat(0x44607e, { metalness: 0.3 }), 0, 160, 0, 32, rot);         // A pulley
+  cyl(11, 8, mat(0x6e7378, { metalness: 0.7 }), 0, 108, 0, 32, rot);           // magnetic kinematic coupling
+
+  const wood = mat(0x8a5a35, { roughness: 0.7 }), steel = mat(0xc6c9cc, { metalness: 0.8, roughness: 0.3 });
+  function brushMesh(b) {
+    const g = new THREE.Group();
+    const ferH = 22, hairH = b.kind === "flat" ? 16 : 14;
+    cyl(3.4, 104 - ferH - hairH, wood, 0, ferH + hairH + (104 - ferH - hairH) / 2, 0, 16, g);
+    let hairMat = mat(0xd9c7a2, { roughness: 0.9 });
+    if (b.kind === "flat") {
+      const f = new THREE.Mesh(new THREE.BoxGeometry(b.width * 0.9, ferH, 4.5), steel); f.position.y = hairH + ferH / 2; g.add(f);
+      const h = new THREE.Mesh(new THREE.BoxGeometry(b.width, hairH, 3), hairMat); h.position.y = hairH / 2; g.add(h); g.userData.hair = h;
+    } else {
+      const f = new THREE.Mesh(new THREE.CylinderGeometry(b.width * 0.42, b.width * 0.42, ferH, 16), steel); f.position.y = hairH + ferH / 2; g.add(f);
+      const h = new THREE.Mesh(new THREE.ConeGeometry(b.width * 0.42, hairH, 16), hairMat); h.rotation.x = Math.PI; h.position.y = hairH / 2; g.add(h); g.userData.hair = h;
+    }
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 6, 24), mat(0x6e7378, { metalness: 0.7 })); cap.position.y = 102; g.add(cap);
+    g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    return g;
+  }
+  const brushes = M.brushes.map((b, i) => { const g = brushMesh(b); g.position.set(R[i][0], 0, R[i][1]); scene.add(g); return g; });
+  return { scene, gantry, carriage, zslide, spring, rot, brushes, tex, RAIL_Y };
+}
+
+/* ---------------------------------------------------------------- app */
+(async function main() {
+  let data;
+  try { data = await load(); } catch (e) { $("loading").textContent = e.message; return; }
+  const { D, mo, st } = data;
+  const M = D.machine, total = D.total_s;
+  $("loading").hidden = true;
+  if (D.images.source) $("img-source").src = D.images.source; else $("img-source").closest("figure").hidden = true;
+  $("img-final").src = D.images.final;
+  const r = D.report;
+  const chip = (txt, cls = "") => { const s = document.createElement("span"); s.className = "chip " + cls; s.textContent = txt; $("chips").append(s); };
+  chip(`推定 ${r.total_time_h} 時間`); chip(`${nf.format(r.strokes_rebuilt)} ストローク`);
+  chip(r.errors ? `エラー ${r.errors}` : "安全チェック エラー 0", r.errors ? "ng" : "ok");
+  if (r.warnings) chip(`警告 ${r.warnings}`, "ng");
+  if (D.title) $("subtitle").textContent = `${D.title} を最終実機（平台プロッタ型）で描く工程を、G-code シミュレータの動きで再生します`;
+
+  const painter = new Painter($("canvas2d"), data, $("canvas2d").width / M.canvas.size[0]);
+  const stage = $("stage");
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ antialias: true }); }
+  catch (e) { $("loading").hidden = false; $("loading").textContent = "この環境では 3D 表示（WebGL）を使えません。ハードウェアアクセラレーションを有効にしたブラウザで開いてください。"; return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.domElement.className = "gl"; stage.prepend(renderer.domElement);
+  const S = buildScene(D, $("canvas2d"));
+  const setBg = () => { S.scene.background = new THREE.Color(css("--stage") || "#dfe4ea"); };
+  setBg(); matchMedia("(prefers-color-scheme: dark)").addEventListener("change", setBg);
+  new MutationObserver(setBg).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 5, 6000);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.495;
+  const [X0, X1] = M.motion.x_range, [Y0, Y1] = M.motion.y_range, cx = (X0 + X1) / 2, cz = (Y0 + Y1) / 2;
+  let follow = false;
+  const VIEWS = {
+    "v-over": () => { camera.position.set(cx - 520, 760, cz + 980); controls.target.set(cx, 40, cz); },
+    "v-top": () => { camera.position.set(cx, 1500, cz + 1); controls.target.set(cx, 0, cz); },
+    "v-head": () => { follow = true; },
+    "v-station": () => { const p = M.palette[0]; camera.position.set(p[0] - 160, 300, p[1] + 420); controls.target.set(p[0] + 60, 0, p[1] + 130); },
+  };
+  for (const id of Object.keys(VIEWS)) $(id).addEventListener("click", () => {
+    follow = false; for (const k of Object.keys(VIEWS)) $(k).setAttribute("aria-pressed", String(k === id)); VIEWS[id]();
+  });
+  VIEWS["v-over"]();
+  function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(stage); resize();
+
+  // timeline ticks
+  (function drawTicks() {
+    const c = $("ticks"), g = c.getContext("2d"); c.width = c.clientWidth * (devicePixelRatio || 1) || 1200; g.clearRect(0, 0, c.width, c.height);
+    g.fillStyle = css("--accent"); for (const [tt] of D.events.tools) g.fillRect(Math.round(tt / total * c.width), 0, 2, c.height);
+    g.fillStyle = css("--warm"); for (const [tt] of D.events.pauses) g.fillRect(Math.round(tt / total * c.width) - 1, 0, 3, c.height);
+  })();
+
+  const tools = D.events.tools, dips = D.events.dips, washes = D.events.washes;
+  const toolT = Float64Array.from(tools.map((e) => e[0])), dipT = Float64Array.from(dips.map((e) => e[0])), washT = Float64Array.from(washes);
+  const pauseT = Float64Array.from(D.events.pauses.map((e) => e[0]));
+
+  let t = total * 0.35, speed = 1200, playing = !matchMedia("(prefers-reduced-motion: reduce)").matches, rebuilding = true;
+  painter.clear();
+  document.querySelectorAll(".speed button").forEach((b) => b.addEventListener("click", () => {
+    speed = +b.dataset.speed; document.querySelectorAll(".speed button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  const playBtn = $("play"); const syncPlay = () => { playBtn.textContent = playing ? "❚❚" : "▶"; };
+  playBtn.addEventListener("click", () => { playing = !playing; if (t >= total) { t = 0; painter.clear(); } syncPlay(); }); syncPlay();
+  const seek = $("seek");
+  seek.addEventListener("input", () => { const nt = seek.value / 1000 * total; if (nt < t) painter.clear(); t = nt; rebuilding = true; });
+
+  function headAt(time) {
+    const T = mo.t; let i = lowerBound(T, time); i = Math.min(Math.max(i, 0), T.length - 2);
+    const u = Math.min(Math.max((time - T[i]) / Math.max(T[i + 1] - T[i], 1e-9), 0), 1);
+    const lerp = (p, q) => p + (q - p) * u;
+    return { x: lerp(mo.xy[2 * i], mo.xy[2 * i + 2]) * 0.02, y: lerp(mo.xy[2 * i + 1], mo.xy[2 * i + 3]) * 0.02,
+             z: lerp(mo.z[i], mo.z[i + 1]) * 0.01, a: lerp(mo.a[i], mo.a[i + 1]) };
+  }
+  const hairMats = S.brushes.map((g) => g.userData.hair.material);
+  const clean = new THREE.Color(0xd9c7a2);
+  let last = performance.now();
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.1); last = now;
+    if (playing && !rebuilding) { t = Math.min(t + dt * speed, total); if (t >= total) { playing = false; syncPlay(); } }
+    // canvas: time-sliced catch-up (after a seek) or incremental
+    const done = painter.advance(t, rebuilding ? 24 : 8);
+    if (done) rebuilding = false;
+    const live = painter.present(t);
+    S.tex.needsUpdate = true;
+
+    // machine pose
+    const h = headAt(t);
+    S.gantry.position.z = h.y; S.carriage.position.x = h.x; S.zslide.position.set(0, h.z, 0);
+    const [ox, oy] = M.canvas.origin, [cw, ch] = M.canvas.size;
+    const onCanvas = h.x >= ox && h.x <= ox + cw && h.y >= oy && h.y <= oy + ch;
+    const press = Math.max(0, (onCanvas ? M.canvas.surface_z : -1) - h.z);
+    S.spring.position.y = press;
+    S.rot.rotation.y = -(h.a + 90) * Math.PI / 180;
+    const ti = lowerBound(toolT, t), cur = ti >= 0 ? tools[ti][1] : -1;
+    S.brushes.forEach((g, i) => {
+      if (i === cur) { if (g.parent !== S.rot) { S.rot.add(g); g.position.set(0, 0, 0); g.rotation.set(0, 0, 0); } }
+      else if (g.parent !== S.scene) { S.scene.add(g); const R = M.rack[i]; g.position.set(R[0], 0, R[1]); g.rotation.set(0, 0, 0); }
+    });
+    // paint on the bristles
+    const di = lowerBound(dipT, t), wi = lowerBound(washT, t);
+    const lastDip = di >= 0 ? dips[di][0] : -1, lastWash = wi >= 0 ? washes[wi] : -1;
+    const slot = lastDip > lastWash ? dips[di][1] : null;
+    let load = 0;
+    if (slot !== null) {   // load at the start of the stroke in progress, else after the last stroke since the dip
+      const prev = painter.drawn - 1;
+      load = live >= 0 ? st.load[2 * live] / 255 : (prev >= 0 && st.t1[prev] > lastDip ? st.load[2 * prev + 1] / 255 : 1);
+    }
+    if (cur >= 0) hairMats[cur].color.copy(slot !== null ? new THREE.Color(D.palette[slot]).lerp(clean, 1 - (0.35 + 0.65 * load)) : clean);
+
+    if (follow) { const tgt = new THREE.Vector3(h.x, h.z + 30, h.y); controls.target.lerp(tgt, 0.15); camera.position.lerp(tgt.clone().add(new THREE.Vector3(-180, 170, 260)), 0.08); }
+    controls.update(); renderer.render(S.scene, camera);
+
+    // instruments
+    const ci = lowerBound(mo.ctxT, t), ctx = ci >= 0 ? mo.ctxN[mo.ctxI[ci]] : "program";
+    const label = CTX_LABEL[ctx] || ctx;
+    $("act-label").textContent = label; $("act-time").textContent = fmt(t);
+    $("s-ctx").textContent = label;
+    $("s-xy").textContent = `${h.x.toFixed(1)} / ${h.y.toFixed(1)} mm`;
+    $("s-z").textContent = `${h.z.toFixed(2)} mm${press > 0 ? `（押し込み ${press.toFixed(1)}）` : ""}`;
+    $("s-a").textContent = `${(((h.a % 360) + 360) % 360).toFixed(0)}°（累計 ${h.a.toFixed(0)}°）`;
+    const b = cur >= 0 ? M.brushes[cur] : null;
+    $("b-name").textContent = b ? `${b.id}（${b.kind === "flat" ? "平筆" : "丸筆"} ${b.width} mm）` : "筆なし（ラック）";
+    $("b-swatch").style.background = slot !== null ? D.palette[slot] : "";
+    $("b-paint").textContent = slot !== null ? `スロット ${slot}　${D.palette[slot]}` : "絵の具なし";
+    $("b-load").style.width = `${Math.round(load * 100)}%`;
+    $("p-strokes").textContent = `${nf.format(painter.drawn)} / ${nf.format(st.n)}`;
+    $("p-tools").textContent = `${Math.max(ti + 1, 0)} / ${tools.length}`;
+    $("p-wash").textContent = `${Math.max(wi + 1, 0)} / ${washes.length}`;
+    $("p-pause").textContent = `${Math.max(lowerBound(pauseT, t) + 1, 0)} / ${pauseT.length}`;
+    $("p-bar").style.width = `${(t / total * 100).toFixed(2)}%`;
+    $("time").textContent = `${fmt(t)} / ${fmt(total)}${rebuilding ? "　描き直し中…" : ""}`;
+    if (document.activeElement !== seek) seek.value = String(Math.round(t / total * 1000));
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

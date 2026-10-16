@@ -79,3 +79,16 @@ $ .venv/bin/painter loop date/raw_images/gemini_fuji_04.jpeg -o out/fuji04/loop 
 | キャンバス・パレット・油壺・布・筆ラックの位置、筆の種類 | `configs/machine.yaml` |
 | 細部の描き込み量（多いほど時間増） | `--threshold`, `--threshold-growth` |
 | パレット色数 | `--colors`（パレットのスロット数以下） |
+
+## デジタルツイン（最終実機の 3D 再生、`painter twin`）
+`docs/rig_plan.md` §2 の平台プロッタ型（作業範囲 700×450、`configs/machine_final.yaml`）が 1 枚を描く工程を、ブラウザの 3D ビューアで再生する。
+画像 → 工程計画 → G-code → G-code シミュレータ（Klipper マクロ込み、ステーション位置は config から自動で差し替え）の動きをそのまま使うので、
+ガントリー・Z のばね・回転 A・筆替え・洗浄・絵の具の取り方と、キャンバスに描かれていく様子が同じ時間軸で見られる。
+
+```bash
+$ .venv/bin/painter -c configs/machine_final.yaml twin date/raw_images/gemini_fuji_04.jpeg -o out/twin_fuji04
+$ python -m http.server -d out/twin_fuji04 8000     # http://127.0.0.1:8000（file:// では開けない）
+```
+- 出力は `index.html` と `twin_data.json`（富士山 1 枚 = 約 40 万移動・3 万ストロークで 7.7MB）
+- 視点: 全体 / 真上 / ヘッド追従 / ステーション。速度は実時間〜6000 倍、タイムラインの目盛りは筆替え（青）と補充の一時停止（茶）
+- 寸法は設計目標値。洗浄は壺 1 つで再現している（§2 の 2 つ目の壺は未対応）
