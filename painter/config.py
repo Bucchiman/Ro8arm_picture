@@ -24,6 +24,11 @@ class Motion(BaseModel):
     travel_speed: float = 150.0
     z_speed: float = 20.0
     paint_speed: float = 60.0
+    # Machine travel limits (soft limits checked by the G-code simulator).
+    x_range: Vec2 = (0.0, 600.0)
+    y_range: Vec2 = (0.0, 400.0)
+    z_range: Vec2 = (-25.0, 50.0)
+    a_limit: float = 200.0  # |A| in degrees; the brush rotation axis has a cable, so it must not wind up
 
 
 class Palette(BaseModel):
@@ -59,6 +64,17 @@ class BrushRack(BaseModel):
     pitch: float = 30.0
 
 
+class Camera(BaseModel):
+    """Overhead camera that photographs the canvas between layers (closed loop)."""
+
+    resolution: tuple[int, int] = (1600, 1200)
+    # Canvas corners in the camera image (px): top-left, top-right, bottom-right, bottom-left.
+    # Measure them on the machine (or detect markers at the canvas corners).
+    canvas_corners: list[Vec2] = [(250, 160), (1370, 140), (1450, 1070), (170, 1090)]
+    park: Vec2 = (560, 390)  # head position while the photo is taken (out of the camera view)
+    capture_s: float = 5.0  # park + settle + take the photo
+
+
 class Brush(BaseModel):
     id: str
     kind: Literal["flat", "round"]
@@ -76,6 +92,7 @@ class MachineConfig(BaseModel):
     wipe: Wipe
     brush_rack: BrushRack
     brushes: list[Brush]
+    camera: Camera = Camera()
 
     @model_validator(mode="after")
     def _unique_brushes(self) -> "MachineConfig":

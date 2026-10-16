@@ -16,6 +16,21 @@ def _f(v: float) -> str:
     return f"{v:.3f}".rstrip("0").rstrip(".")
 
 
+def _angle_offset(stroke, brush_kind: str, a_pos: float, a_limit: float) -> float:
+    """Shift a stroke's brush angles by a multiple of the brush symmetry period (180 deg for a flat brush,
+    360 for a round one) so the whole stroke stays within +-a_limit (the rotation axis has a cable and must not
+    wind up), choosing the shift that needs the least rotation from the current A."""
+    period = 180.0 if brush_kind == "flat" else 360.0
+    angles = [p.angle for p in stroke.points]
+    lo, hi = min(angles), max(angles)
+    k0 = round((a_pos - angles[0]) / period)
+    valid = [k * period for k in range(k0 - 4, k0 + 5) if lo + k * period >= -a_limit and hi + k * period <= a_limit]
+    if valid:
+        return min(valid, key=lambda off: abs(angles[0] + off - a_pos))
+    # The stroke turns more than the axis allows: center it (the simulator will flag the overrun).
+    return round(-(lo + hi) / 2 / period) * period
+
+
 def to_gcode(program: PaintProgram, config: MachineConfig) -> str:
     m = config.motion
     surface = config.canvas.surface_z
@@ -49,25 +64,22 @@ def to_gcode(program: PaintProgram, config: MachineConfig) -> str:
             s = action.stroke
             if brush is None or brush.id != s.brush_id:
                 raise ValueError(f"stroke uses {s.brush_id} but the head holds {brush and brush.id}")
-            # Pick the equivalent start angle nearest to the current A to avoid needless spinning, but keep it
-            # within +-180 deg so the rotation axis never winds up its cable over thousands of strokes.
-            period = 180.0 if brush.kind == "flat" else 360.0
-            first = s.points[0].angle
-            offset = round((a_pos - first) / period) * period
-            while first + offset > 180.0:
-                offset -= period
-            while first + offset < -180.0:
-                offset += period
+            if brush.kind == "round":
+                # A round brush looks the same at any angle: hold A still instead of following the stroke.
+                angles = [a_pos] * len(s.points)
+            else:
+                offset = _angle_offset(s, brush.kind, a_pos, m.a_limit)
+                angles = [p.angle + offset for p in s.points]
             p0 = s.points[0]
             x0, y0 = config.canvas_to_machine(p0.x, p0.y)
             lines.append(f"; stroke layer={s.layer} color={s.color_id}")
-            lines.append(f"G0 X{_f(x0)} Y{_f(y0)} A{_f(first + offset)} F{_f(m.travel_speed * 60)}")
+            lines.append(f"G0 X{_f(x0)} Y{_f(y0)} A{_f(angles[0])} F{_f(m.travel_speed * 60)}")
             lines.append(f"G0 Z{_f(surface + m.hover_z)} F{_f(m.z_speed * 60)}")
-            for p in s.points:
+            for p, a in zip(s.points, angles):
                 x, y = config.canvas_to_machine(p.x, p.y)
                 z = surface - p.pressure * brush.press_depth
-                lines.append(f"G1 X{_f(x)} Y{_f(y)} Z{_f(z)} A{_f(p.angle + offset)} F{_f(p.speed * 60)}")
-            a_pos = s.points[-1].angle + offset
+                lines.append(f"G1 X{_f(x)} Y{_f(y)} Z{_f(z)} A{_f(a)} F{_f(p.speed * 60)}")
+            a_pos = angles[-1]
             lines.append(f"G0 Z{_f(m.travel_z)} F{_f(m.z_speed * 60)}")
     lines.append("PAINTER_END")
     return "\n".join(lines) + "\n"

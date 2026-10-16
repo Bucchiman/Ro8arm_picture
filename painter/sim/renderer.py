@@ -27,6 +27,7 @@ class Renderer:
         self.palette = {c.id: np.array(c.rgb, np.float32) for c in program.palette}
         self.rng = np.random.default_rng(seed)
         self.load_fraction = 0.0
+        self.opacity = 1.0  # coverage scale (the simulated "real" world uses < 1 for thinner paint than modeled)
 
     def apply(self, action) -> None:
         if isinstance(action, Dip):
@@ -68,7 +69,7 @@ class Renderer:
             if p <= 0.02:
                 continue
             size = width_px * (0.35 + 0.65 * p)
-            alpha = 0.95 * (0.35 + 0.65 * ld)
+            alpha = min(0.95 * self.opacity * (0.35 + 0.65 * ld), 1.0)
             center = (float(x - x0), float(y - y0))
             if brush.kind == "flat":
                 # broad side across the direction of travel

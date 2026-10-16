@@ -46,6 +46,34 @@ $ .venv/bin/painter run date/raw_images/gemini_fuji_04.jpeg -o out/fuji04 --colo
 $ .venv/bin/pytest
 ```
 
+### 動きの確認
+```bash
+# 1本のストロークを拡大表示（XY軌跡・筆の向き・Z押し込み・速度のアニメーション+グラフ）。既定は各筆の最初の1本、4倍スロー
+$ .venv/bin/painter inspect out/fuji04/program.json -o out/fuji04/inspect
+$ .venv/bin/painter inspect out/fuji04/program.json -o out/fuji04/inspect --stroke 2596 --slow 8
+
+# G-code を Klipper マクロ込みで実行して安全チェック＋再生動画（全工程を60秒に圧縮）
+$ .venv/bin/painter gcode-sim out/fuji04/program.gcode -o out/fuji04/gcode_sim --program out/fuji04/program.json --video
+# 最初の90秒を実時間で（筆の掴み取り・ディップ・最初のストローク）
+$ .venv/bin/painter gcode-sim out/fuji04/program.gcode -o out/fuji04/gcode_start --video --start 0 --end 90 --speed 1
+```
+`gcode-sim` のチェック内容: 可動範囲・回転軸 A の上限、キャンバスと各ステーション以外への接触、筆なし/絵の具なしでの描画、
+汚れた筆で別の色を取る（混色汚染）、押し込みすぎ、汚れた筆のラック戻し。エラーがあれば終了コード 1。
+
+### カメラで見ながら描く（クローズドループ）
+```bash
+# 層ごとにキャンバスを撮影 → 補正 → 目標とのズレを見て次の層を計画。最後に細筆でタッチアップ
+$ .venv/bin/painter loop date/raw_images/gemini_fuji_04.jpeg -o out/fuji04/loop --video
+#   comparison.png    目標 / 見ずに描いた場合（オープンループ）/ カメラで見ながら描いた場合
+#   camera_steps.png  各層の撮影画像（補正後）と目標とのズレのヒートマップ
+#   camera_loop.mp4   カメラ視点の描画過程 + 直前の撮影で見えたズレ
+#   steps/            各層の生の撮影画像・補正画像・ズレ画像
+#   loop_report.json  層ごとの ΔE / SSIM / ズレ面積、ストローク数、推定時間
+```
+シミュレーションでは「実機は計画のモデル通りに描けない」状況を意図的に作っています（筆が開いて線が太い、絵の具の乗りが薄い、
+位置ズレ、人が混ぜた色のズレ）。`--width-scale --opacity --position-noise --mix-error` で変えられます。
+カメラの位置は `configs/machine.yaml` の `camera.canvas_corners`（撮影画像中のキャンバス四隅）で指定します。
+
 | 設定 | 場所 |
 | --- | --- |
 | キャンバス・パレット・油壺・布・筆ラックの位置、筆の種類 | `configs/machine.yaml` |

@@ -36,14 +36,16 @@ def order_by_travel(strokes: list[Stroke]) -> list[Stroke]:
     return [strokes[k] for k in order]
 
 
-def plan(strokes: list[Stroke], config: MachineConfig) -> list[Action]:
+def plan(strokes: list[Stroke], config: MachineConfig, stock: PaletteStock | None = None) -> list[Action]:
+    """`stock` carries the palette levels over when a painting is planned in chunks (closed loop)."""
     brush_order = {b.id: i for i, b in enumerate(config.brushes)}
     groups: dict[tuple[int, str, int], list[Stroke]] = {}
     for s in strokes:
         groups.setdefault((s.layer, s.brush_id, s.color_id), []).append(s)
     keys = sorted(groups, key=lambda k: (k[0], brush_order[k[1]], k[2]))
 
-    stock = PaletteStock(config.palette.slot_capacity, config.palette.refill_threshold)
+    if stock is None:
+        stock = PaletteStock(config.palette.slot_capacity, config.palette.refill_threshold)
     actions: list[Action] = []
     load: BrushLoad | None = None
 

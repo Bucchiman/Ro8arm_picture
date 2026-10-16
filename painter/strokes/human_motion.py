@@ -94,7 +94,9 @@ def humanize(
     path_mm = resample(path_mm, params.spacing_mm)
     t = np.linspace(0.0, 1.0, len(path_mm))
     pressure = pressure_profile(t, params)
-    pressure = np.clip(pressure + rng.normal(0, params.pressure_jitter, len(t)) * (pressure > 0.1), 0.0, 1.0)
+    # Jitter must never lift the brush off mid-stroke: keep at least the lift-off pressure.
+    jitter = rng.normal(0, params.pressure_jitter, len(t)) * (pressure > 0.1)
+    pressure = np.clip(pressure + jitter, min(params.exit_pressure, params.entry_pressure), 1.0)
     speed = speed_profile(t, nominal_speed, params)
     angle = brush_angles(path_mm, symmetric=brush_kind == "flat") + rng.normal(0, params.angle_jitter_deg)
     points = [

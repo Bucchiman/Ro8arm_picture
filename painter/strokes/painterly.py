@@ -29,6 +29,7 @@ class StrokeParams:
     curvature: float = 0.6  # direction filter: 0 = straight, 1 = follow gradient fully
     edge_gradient: float = 4.0  # Sobel magnitude above which the local edge direction is followed
     hatch_angle_deg: float = 30.0  # default stroke direction where the image has no structure at all
+    max_turn_deg: float = 180.0  # a stroke ends once it has turned this much (no spirals with a flat brush)
     max_strokes_per_layer: int | None = None
     seed: int = 0
 
@@ -58,50 +59,67 @@ def generate_strokes(
     h, w = target_rgb.shape[:2]
     canvas = np.full_like(target_rgb, 255)
     painted = np.zeros((h, w), bool)
-    pal_lab = rgb_to_lab(palette_rgb.reshape(1, -1, 3)).reshape(-1, 3)
-
     strokes: list[RawStroke] = []
     for layer, brush in enumerate(brushes):
-        width_px = brush.width * params.px_per_mm
-        radius = max(width_px / 2.0, 1.0)
-        sigma = max(params.blur_factor * radius, 0.5)
-        reference = cv2.GaussianBlur(target_rgb, (0, 0), sigma)
-        ref_lab = rgb_to_lab(reference)
-
-        # Each pixel's reference color snapped to the palette (what the painter can actually mix).
-        d = ((ref_lab[:, :, None, :] - pal_lab[None, None, :, :]) ** 2).sum(-1)
-        ref_idx = d.argmin(-1)
-        ref_q_lab = pal_lab[ref_idx]
-
-        tx, ty = _flow_field(reference, radius, params)
-
-        canvas_lab = rgb_to_lab(canvas)
-        diff = _lab_diff(canvas_lab, ref_q_lab)
-        diff[~painted] = 1e3  # unpainted canvas always needs paint
-
-        step = max(int(round(params.grid_factor * radius)), 1)
-        layer_threshold = params.threshold * (1 + params.threshold_growth * layer)
-        layer_strokes: list[RawStroke] = []
-        for y0 in range(0, h, step):
-            for x0 in range(0, w, step):
-                cell = diff[y0 : y0 + step, x0 : x0 + step]
-                if cell.mean() <= layer_threshold:
-                    continue
-                iy, ix = np.unravel_index(np.argmax(cell), cell.shape)
-                sx, sy = x0 + ix, y0 + iy
-                color_id = int(ref_idx[sy, sx])
-                path = _trace_stroke(
-                    sx, sy, color_id, pal_lab, ref_lab, canvas_lab, painted, tx, ty, radius, width_px, params
-                )
-                layer_strokes.append(RawStroke(brush.id, color_id, layer, path, width_px))
-
-        rng.shuffle(layer_strokes)
-        if params.max_strokes_per_layer is not None:
-            layer_strokes = layer_strokes[: params.max_strokes_per_layer]
-        for s in layer_strokes:
-            _quick_render(canvas, painted, s, palette_rgb)
-        strokes.extend(layer_strokes)
+        strokes.extend(generate_layer(target_rgb, palette_rgb, brush, layer, canvas, painted, params, rng))
     return strokes
+
+
+def generate_layer(
+    target_rgb: np.ndarray,
+    palette_rgb: np.ndarray,
+    brush: Brush,
+    layer: int,
+    canvas: np.ndarray,
+    painted: np.ndarray,
+    params: StrokeParams,
+    rng: np.random.Generator,
+    level: int | None = None,
+) -> list[RawStroke]:
+    """One layer of strokes with `brush` on top of `canvas` (RGB uint8, what is on the canvas now: the internal
+    model in open loop, the camera image in closed loop). `painted` marks pixels that have been stroked before;
+    both are updated with a quick estimate of the new strokes. `level` sets the threshold growth (default: layer)."""
+    h, w = target_rgb.shape[:2]
+    pal_lab = rgb_to_lab(palette_rgb.reshape(1, -1, 3)).reshape(-1, 3)
+    width_px = brush.width * params.px_per_mm
+    radius = max(width_px / 2.0, 1.0)
+    sigma = max(params.blur_factor * radius, 0.5)
+    reference = cv2.GaussianBlur(target_rgb, (0, 0), sigma)
+    ref_lab = rgb_to_lab(reference)
+
+    # Each pixel's reference color snapped to the palette (what the painter can actually mix).
+    d = ((ref_lab[:, :, None, :] - pal_lab[None, None, :, :]) ** 2).sum(-1)
+    ref_idx = d.argmin(-1)
+    ref_q_lab = pal_lab[ref_idx]
+
+    tx, ty = _flow_field(reference, radius, params)
+
+    canvas_lab = rgb_to_lab(canvas)
+    diff = _lab_diff(canvas_lab, ref_q_lab)
+    diff[~painted] = 1e3  # unpainted canvas always needs paint
+
+    step = max(int(round(params.grid_factor * radius)), 1)
+    layer_threshold = params.threshold * (1 + params.threshold_growth * (layer if level is None else level))
+    layer_strokes: list[RawStroke] = []
+    for y0 in range(0, h, step):
+        for x0 in range(0, w, step):
+            cell = diff[y0 : y0 + step, x0 : x0 + step]
+            if cell.mean() <= layer_threshold:
+                continue
+            iy, ix = np.unravel_index(np.argmax(cell), cell.shape)
+            sx, sy = x0 + ix, y0 + iy
+            color_id = int(ref_idx[sy, sx])
+            path = _trace_stroke(
+                sx, sy, color_id, pal_lab, ref_lab, canvas_lab, painted, tx, ty, radius, width_px, params
+            )
+            layer_strokes.append(RawStroke(brush.id, color_id, layer, path, width_px))
+
+    rng.shuffle(layer_strokes)
+    if params.max_strokes_per_layer is not None:
+        layer_strokes = layer_strokes[: params.max_strokes_per_layer]
+    for s in layer_strokes:
+        _quick_render(canvas, painted, s, palette_rgb)
+    return layer_strokes
 
 
 def _flow_field(reference_rgb: np.ndarray, radius: float, params: StrokeParams) -> tuple[np.ndarray, np.ndarray]:
@@ -138,6 +156,7 @@ def _trace_stroke(sx, sy, color_id, pal_lab, ref_lab, canvas_lab, painted, tx, t
     max_len = params.max_length_factor * width_px
     min_len = params.min_length_factor * width_px
     length = 0.0
+    turned = 0.0
     while length < max_len:
         ix, iy = int(round(x)), int(round(y))
         if not (0 <= ix < w and 0 <= iy < h):
@@ -158,7 +177,12 @@ def _trace_stroke(sx, sy, color_id, pal_lab, ref_lab, canvas_lab, painted, tx, t
         n = np.hypot(ndx, ndy)
         if n < 1e-6:
             break
-        dx, dy = ndx / n, ndy / n
+        ndx, ndy = ndx / n, ndy / n
+        if dx != 0 or dy != 0:
+            turned += abs(np.degrees(np.arctan2(dx * ndy - dy * ndx, dx * ndx + dy * ndy)))
+            if turned > params.max_turn_deg:
+                break
+        dx, dy = ndx, ndy
         x, y = x + radius * dx, y + radius * dy
         length += radius
         pts.append((x, y))

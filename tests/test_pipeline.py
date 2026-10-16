@@ -6,7 +6,7 @@ import pytest
 
 from painter.analysis.palette import extract_palette
 from painter.backends.klipper_gcode import to_gcode
-from painter.cli import DEFAULT_CONFIG, build_program, main
+from painter.cli import DEFAULT_CONFIG, DEFAULT_MACROS, build_program, main
 from painter.config import load_config
 from painter.planner.sequencer import plan
 from painter.program import Dip, Paint, PaintProgram, Pause, Stroke, StrokePoint, ToolChange, Wash, Wipe
@@ -137,9 +137,9 @@ def test_gcode(program, config):
     g = to_gcode(program, config)
     assert g.count("TOOL_CHANGE") == sum(isinstance(a, ToolChange) for a in program.actions)
     assert g.count("\nWASH") == sum(isinstance(a, Wash) for a in program.actions)
-    a_values = [float(tok[1:]) for line in g.splitlines() if line.startswith("G0 X")
+    a_values = [float(tok[1:]) for line in g.splitlines() if line.startswith(("G0", "G1"))
                 for tok in line.split() if tok.startswith("A")]
-    assert a_values and max(abs(v) for v in a_values) <= 180.0
+    assert a_values and max(abs(v) for v in a_values) <= config.motion.a_limit
     # brush never goes deeper than its press depth
     deepest = min(config.canvas.surface_z - b.press_depth for b in config.brushes)
     z = [float(tok[1:]) for line in g.splitlines() if line.startswith("G1")
@@ -151,3 +151,121 @@ def test_cli_run(image_path, tmp_path):
     main(["--px-per-mm", "1", "run", image_path, "-o", str(tmp_path), "--colors", "4"])
     for name in ["program.json", "palette_sheet.png", "canvas.png", "report.json", "program.gcode"]:
         assert (Path(tmp_path) / name).exists()
+
+
+# --- G-code simulator ---------------------------------------------------------------------------------------------
+
+from painter.sim.gcode_sim import run_gcode  # noqa: E402
+from painter.sim.gcode_player import render_canvas  # noqa: E402
+from painter.sim.klipper_macros import MacroEngine, parse_macros  # noqa: E402
+from painter.sim.renderer import render_program  # noqa: E402
+from painter.sim.stroke_inspector import inspect, select_strokes  # noqa: E402
+
+
+def test_generated_gcode_runs_clean(program, config):
+    """The generated G-code, run through the real macros, raises no safety issue and paints the same picture."""
+    interp, checker = run_gcode(to_gcode(program, config), config, DEFAULT_MACROS)
+    r = interp.report
+    assert r.errors == 0 and r.warnings == 0, r.first_issues[:5]
+    assert r.unknown_commands == {}
+    assert r.strokes_rebuilt == len(program.strokes())
+    assert r.macro_calls["WASH"] == sum(isinstance(a, Wash) for a in program.actions)
+    canvas = render_canvas(interp, checker, config, 1.0)
+    expected = render_program(program, config, 1.0)
+    assert np.abs(canvas.astype(float) - expected).mean() / 255 < 0.02
+
+
+def test_wash_macro_stays_in_jar(config):
+    """Regression: `{-x}` in a Klipper template is Jinja whitespace control and silently drops the sign."""
+    engine = MacroEngine(parse_macros(DEFAULT_MACROS))
+    arcs = [ln for ln in engine.render("WASH", {}) if ln.startswith("G2")]
+    assert arcs and all(" I-" in ln for ln in arcs)
+
+
+def _issues(gcode, config):
+    interp, _ = run_gcode(gcode, config, DEFAULT_MACROS)
+    return interp.report.issues_by_kind
+
+
+def test_checker_detects_contamination(config):
+    assert "contamination" in _issues("PAINTER_START\nTOOL_CHANGE BRUSH=0\nDIP SLOT=0\nDIP SLOT=1\n", config)
+    assert "contamination" not in _issues("PAINTER_START\nTOOL_CHANGE BRUSH=0\nDIP SLOT=0\nWASH\nWIPE\nDIP SLOT=1\n", config)
+
+
+def test_checker_detects_unsafe_moves(config):
+    g = "\n".join([
+        "PAINTER_START", "TOOL_CHANGE BRUSH=3", "DIP SLOT=0",
+        "G0 X100 Y100", "G1 Z-5 F600",                 # round_small presses 1.5 mm at most
+        "G0 Z15", "G0 X20 Y390", "G1 Z-1",              # nothing to touch there
+        "G0 Z15", "G0 X100 Y100 A300",                  # rotation beyond the limit
+        "G0 X700",                                      # beyond the gantry
+    ])
+    kinds = _issues(g, config)
+    assert {"too_deep", "unexpected_contact", "a_limit", "soft_limit_xy"} <= set(kinds)
+
+
+def test_checker_detects_painting_without_brush(config):
+    assert "no_brush" in _issues("PAINTER_START\nG0 X100 Y100\nG1 Z-1\n", config)
+
+
+def test_stroke_inspector(program, config, tmp_path):
+    idx = select_strokes(program, None, 0, 0)
+    assert len(idx) == len({s.brush_id for s in program.strokes()})
+    results = inspect(program, config, idx[:1], tmp_path, px_per_mm=1.0, slow=1.0)
+    assert Path(results[0]["video"]).stat().st_size > 0
+    assert Path(results[0]["image"]).exists()
+    assert results[0]["min_z"] >= config.canvas.surface_z - config.brush(results[0]["brush"]).press_depth - 1e-6
+
+
+def test_cli_gcode_sim(program, config, tmp_path):
+    program.save(tmp_path / "p.json")
+    (tmp_path / "p.gcode").write_text(to_gcode(program, config))
+    code = main(["--px-per-mm", "1", "gcode-sim", str(tmp_path / "p.gcode"), "-o", str(tmp_path / "sim"),
+                 "--program", str(tmp_path / "p.json"), "--video", "--end", "60", "--speed", "4"])
+    assert code == 0
+    assert (tmp_path / "sim" / "gcode_sim.mp4").stat().st_size > 0
+
+
+# --- closed loop (camera) -----------------------------------------------------------------------------------------
+
+from painter.feedback.camera import FlatField, SimCamera, rectify  # noqa: E402
+from painter.feedback.loop import LoopParams, compare, paint_closed_loop  # noqa: E402
+from painter.feedback.world import RealityParams, SimWorld  # noqa: E402
+
+
+def _world(program, config, reality=RealityParams()):
+    return SimWorld(PaintProgram(program.canvas_size, program.palette), config, 1.0, reality)
+
+
+def test_camera_rectify_recovers_canvas(program, config):
+    """Photo -> rectify + flat-field gives back what is on the canvas despite perspective and uneven light."""
+    world = _world(program, config, RealityParams(width_scale=1, opacity=1, capacity_scale=1, position_noise_mm=0,
+                                                  mix_error_rgb=0))
+    cam = SimCamera(world, config)
+    flat = FlatField(rectify(cam.capture(), config, 1.0))
+    for a in program.actions:
+        world.apply(a)
+    seen = flat.apply(rectify(cam.capture(), config, 1.0))
+    _, de, _, _ = compare(seen, world.image())
+    assert seen.shape == world.image().shape
+    assert de < 5.0
+
+
+def test_closed_loop_beats_open_loop(program, config, image_path, tmp_path):
+    target = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+    open_world = _world(program, config)
+    for a in program.actions:
+        open_world.apply(a)
+    _, de_open, off_open, _ = compare(open_world.image(), target)
+
+    world = _world(program, config)
+    prog, steps = paint_closed_loop(target, program.palette, config, SimCamera(world, config),
+                                    lambda chunk: [world.apply(a) for a in chunk], 1.0,
+                                    LoopParams(touchup_rounds=1), tmp_path)
+    _, de_closed, off_closed, _ = compare(world.image(), target)
+    assert steps[0].name == "blank canvas" and len(steps) >= len(config.brushes) + 1
+    assert steps[-1].delta_e < steps[1].delta_e  # every photo-driven layer improves the picture
+    assert de_closed < de_open and off_closed < off_open
+    # the combined program is still a valid process (washed before color changes, valid G-code)
+    interp, _ = run_gcode(to_gcode(prog, config), config, DEFAULT_MACROS)
+    assert interp.report.errors == 0

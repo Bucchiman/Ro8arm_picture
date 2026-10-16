@@ -15,6 +15,10 @@ motion:
   travel_speed: 150.0     # mm/s
   z_speed: 20.0           # mm/s
   paint_speed: 60.0       # nominal mm/s while painting
+  x_range: [0, 600]       # soft limits of the gantry
+  y_range: [0, 400]
+  z_range: [-25, 50]
+  a_limit: 200            # max |A| (deg) of the brush rotation axis
 
 # Paint palette: one slot per pre-mixed color. The human mixes and places paint here.
 palette:
@@ -37,6 +41,14 @@ wipe:
   position: [530, 160]
   length: 60
   passes: 3
+
+# Overhead camera for the closed loop: the canvas is photographed after every layer and the next layer is
+# planned from the photo. canvas_corners = canvas TL, TR, BR, BL in the camera image (px), measured on the machine.
+camera:
+  resolution: [1600, 1200]
+  canvas_corners: [[250, 160], [1370, 140], [1450, 1070], [170, 1090]]
+  park: [560, 390]
+  capture_s: 5.0
 
 # Brush rack for the tool changer.
 brush_rack:
