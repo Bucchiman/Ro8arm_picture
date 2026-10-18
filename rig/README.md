@@ -8,6 +8,10 @@ uv pip install -e '.[cad]'
 .venv/bin/python rig/cad/rig.py --check   # チェックだけ（30 項目）
 ```
 
+**版（バージョン）**: すべての印刷部品に `R<VERSION>`（今は **R1**）を刻んである。刻む場所は底面（鏡文字、裏返すと読める）で、底面に入らない部品は上向きの平らな面。部品の形を変えたら `rig.py` の `VERSION` を上げて出力し直す（`out/manifest.json` と比べて、上げ忘れるとテストが止まる）。刻印のない部品は最初の版 R0。
+
+ArUco マーカーの印刷用画像は `.venv/bin/python rig/cad/markers.py` → `out/aruco_4x4_50_id0-3_20mm.png`（600dpi、100% で印刷）。
+
 寸法はすべて `rig/cad/rig.py` 冒頭の定数。**★ の値は推定**（H2C のツールヘッド寸法は公開されていない）なので、
 最初に `fit_test.stl` を印刷して実測し、定数を直してから本番の部品を出す。
 

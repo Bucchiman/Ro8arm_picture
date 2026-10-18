@@ -39,7 +39,7 @@ def image_path(tmp_path_factory):
 def test_macros_follow_the_config(final_config):
     text = macros_for_config(DEFAULT_MACROS.read_text(encoding="utf-8"), final_config)
     assert "variable_palette_x0: 500\n" in text and "variable_wash_x: 630\n" in text
-    assert "variable_rack_x: 640\n" in text and "variable_rack_y0: 280\n" in text
+    assert "variable_rack_x: 690\n" in text and "variable_rack_y0: 280\n" in text
     with pytest.raises(ValueError):
         macros_for_config("no variables here", final_config)
 

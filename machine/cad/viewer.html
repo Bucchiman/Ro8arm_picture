@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>完成機 CAD ビューア</title>
+<style>
+  :root { --bg: #f3f1ec; --fg: #222; --panel: rgba(255,255,255,.9); }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1d1f23; --fg: #e8e8e8; --panel: rgba(30,32,36,.9); } }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px system-ui, sans-serif; }
+  #c { width: 100%; height: 100%; display: block; }
+  #ui { position: fixed; top: 12px; left: 12px; background: var(--panel); padding: 10px 12px; border-radius: 8px; max-width: 320px; }
+  #ui h1 { font-size: 15px; margin: 0 0 6px; }
+  #ui label { display: block; margin: 2px 0; }
+  #ui button { margin: 4px 4px 0 0; }
+  #msg { font-size: 12px; opacity: .8; margin-top: 6px; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <h1>完成機（平台プロッタ型）</h1>
+  <div>ドラッグで回転、ホイールで拡大、右ドラッグで移動</div>
+  <label><input type="checkbox" id="printed" checked> 印刷部品（オレンジ）</label>
+  <label><input type="checkbox" id="purchased" checked> 購入品</label>
+  <label><input type="checkbox" id="frame" checked> フレーム・天板</label>
+  <button data-v="iso">全体</button><button data-v="top">真上</button><button data-v="front">正面</button><button data-v="head">ヘッド</button>
+  <div id="msg">読み込み中…（out/machine_assembly.glb）</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(getComputedStyle(document.body).backgroundColor);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 20);
+const controls = new THREE.OrbitControls(camera, canvas);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x666666, 0.9));
+const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(1, 2, 1.5); scene.add(sun);
+const groups = { printed: [], purchased: [], frame: [] };
+const FRAME = ['frame_2040', 'deck_mdf', 'beam_2040_X', 'camera_mast_2040', 'camera_arm_2020'];
+// glTF: Y 上、m。機械座標 (x, y, z) mm は (x, z, -y) / 1000
+const P = (x, y, z) => new THREE.Vector3(x / 1000, z / 1000, -y / 1000);
+const views = {
+  iso: [P(1250, 1050, 950), P(365, 300, 50)],
+  top: [P(365, 300, 2000), P(365, 299, 0)],
+  front: [P(365, 1700, 250), P(365, 300, 150)],
+  head: [P(420, 420, 300), P(230, 200, 100)],
+};
+function setView(k) { const [p, t] = views[k]; camera.position.copy(p); controls.target.copy(t); controls.update(); }
+new THREE.GLTFLoader().load('out/machine_assembly.glb', (g) => {
+  g.scene.traverse((o) => {
+    if (!o.isMesh) return;
+    const name = o.name.replace(/^\d+_/, '');
+    const k = FRAME.some((f) => name.startsWith(f)) ? 'frame' : (o.material.metalness > 0.1 ? 'purchased' : 'printed');
+    groups[k].push(o);
+  });
+  scene.add(g.scene);
+  document.getElementById('msg').textContent = `${groups.printed.length + groups.purchased.length + groups.frame.length} 部品。ヘッドは X230 Y200 Z15、A 30°`;
+  setView('iso');
+}, undefined, (e) => { document.getElementById('msg').textContent = '読み込めません: machine/cad で python -m http.server を起動して開いてください'; });
+for (const k of Object.keys(groups)) document.getElementById(k).onchange = (e) => groups[k].forEach((o) => (o.visible = e.target.checked));
+document.querySelectorAll('button[data-v]').forEach((b) => (b.onclick = () => setView(b.dataset.v)));
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
+</script>
+</body>
+</html>

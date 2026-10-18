@@ -31,6 +31,13 @@ import numpy as np
 from manifold3d import CrossSection, FillRule, Manifold
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from labels import check_manifest, engrave_label, label_texts, write_manifest  # noqa: E402
+
+# 部品の形を 1 か所でも変えたら上げる。全部の印刷部品の底面に「R<VERSION>」を刻む（R = 試験装置）。
+# 0 = バージョンを刻む前（2026-10-16 の最初の STL、fit_test を含む）
+VERSION = "1"
+PREFIX = "R"
 OUT = os.path.join(HERE, "out")
 PREV = os.path.join(HERE, "preview")
 SEG = 64
@@ -402,6 +409,10 @@ def check(verbose=True):
     for k, m in {**H, **B}.items():
         b = m.bounding_box()
         req(b[3] - b[0] <= BED_W and b[4] - b[1] <= BED_D, f"{k} がベッドに収まる: {b[3]-b[0]:.0f}×{b[4]-b[1]:.0f}×{b[5]-b[2]:.0f}")
+    parts, labels = labeled_parts()
+    for k, lab in labels.items():
+        req(lab is not None and parts[k].status().name == "NoError",
+            f"{k} の底面にバージョンを刻める: {lab or '入る場所がない'}")
     total_d = FRAME_D + TRAY_D
     req(total_d <= BED_D and FRAME_W <= BED_W, f"枠 + トレイ {FRAME_W:.0f}×{total_d:.0f} がプリンタのベッドに置ける")
     return ok
@@ -435,12 +446,21 @@ def print_orient():
     }
 
 
+def labeled_parts():
+    """印刷向きの部品の底面にバージョンを刻んだもの（STL に書くのはこれ）。返り値 (部品, 刻んだ文字)。"""
+    parts, labels = {}, {}
+    for k, m in print_orient().items():
+        parts[k], labels[k] = engrave_label(m, label_texts(PREFIX, VERSION, k))
+    return parts, labels
+
+
 def layout_json():
     """ソフト側（configs/rig.yaml 予定）に渡す設計値。ベッド側はマーカー 0 の中心基準の mm（X 右・Y 奥）。"""
     m0 = np.array(marker_centers()[0])
     rel = lambda p: [round(float(v), 2) for v in (np.array(p) - m0)]
     return {
         "note": "design values; jog only marker 0 (rig_plan 3.2). head: origin = nozzle tip",
+        "version": f"{PREFIX}{VERSION}",
         "head": {"brush_offset_from_nozzle": [0.0, BRUSH_Y, TIP_Z], "stroke_mm": STROKE,
                  "spring_preload_mm": round(SPRING_FREE - (UPPER_EAR_Z0 + SEAT_DEPTH - (SLIDER_Z0 + SLIDER_H - SEAT_DEPTH)), 2),
                  "height_adjust_mm": [-ADJ, ADJ]},
@@ -529,10 +549,13 @@ def main():
         sys.exit(0 if ok else 1)
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(PREV, exist_ok=True)
-    for k, m in print_orient().items():
+    parts, labels = labeled_parts()
+    for k, m in parts.items():
         t = save_stl(m, os.path.join(OUT, f"{k}.stl"))
         b = t.bounds
-        print(f"wrote {k}.stl  {b[1][0]-b[0][0]:.0f}×{b[1][1]-b[0][1]:.0f}×{b[1][2]-b[0][2]:.0f} mm  {t.volume/1000:.1f} cm3")
+        print(f"wrote {k}.stl  {b[1][0]-b[0][0]:.0f}×{b[1][1]-b[0][1]:.0f}×{b[1][2]-b[0][2]:.0f} mm  {t.volume/1000:.1f} cm3"
+              f"  label: {labels[k]}")
+    write_manifest(os.path.join(OUT, "manifest.json"), f"{PREFIX}{VERSION}", parts, labels)
     with open(os.path.join(OUT, "rig_layout.json"), "w", encoding="utf-8") as f:
         json.dump(layout_json(), f, indent=2, ensure_ascii=False)
     H = head_parts()

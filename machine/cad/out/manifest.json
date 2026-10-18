@@ -1,0 +1,317 @@
+{
+ "version": "M1",
+ "parts": {
+  "x_carriage": {
+   "signature": [
+    65368.0,
+    -39.1,
+    -78.5,
+    0.0,
+    39.1,
+    78.5,
+    69.2
+   ],
+   "label": "M1 x_carriage (3mm, 上面 z=32.15)"
+  },
+  "z_slide": {
+   "signature": [
+    39245.0,
+    -38.0,
+    -34.5,
+    0.0,
+    38.0,
+    34.5,
+    42.0
+   ],
+   "label": "M1 z_slide (3.5mm, 底面)"
+  },
+  "float": {
+   "signature": [
+    49769.0,
+    -42.0,
+    -26.8,
+    0.0,
+    42.0,
+    26.8,
+    30.0
+   ],
+   "label": "M1 float (3mm, 底面)"
+  },
+  "coupler": {
+   "signature": [
+    3642.0,
+    -14.0,
+    -14.0,
+    0.0,
+    14.0,
+    14.0,
+    8.0
+   ],
+   "label": "M1 (4mm, 底面)"
+  },
+  "gantry_end_L": {
+   "signature": [
+    52252.0,
+    -40.0,
+    -23.0,
+    0.0,
+    40.0,
+    23.0,
+    59.2
+   ],
+   "label": "M1 gantry_end_L (4mm, 上面 z=26)"
+  },
+  "gantry_end_R": {
+   "signature": [
+    54838.0,
+    -40.0,
+    -23.0,
+    0.0,
+    40.0,
+    23.0,
+    59.2
+   ],
+   "label": "M1 gantry_end_R (4mm, 上面 z=26)"
+  },
+  "y_motor_mount_L": {
+   "signature": [
+    23137.0,
+    -33.3,
+    -28.6,
+    0.0,
+    33.3,
+    28.6,
+    16.0
+   ],
+   "label": "M1 y_motor_mount_L (3mm, 上面 z=16)"
+  },
+  "y_motor_mount_R": {
+   "signature": [
+    23136.0,
+    -33.3,
+    -28.6,
+    0.0,
+    33.3,
+    28.6,
+    16.0
+   ],
+   "label": "M1 y_motor_mount_R (3mm, 上面 z=16)"
+  },
+  "y_idler_mount_L": {
+   "signature": [
+    21348.0,
+    -33.3,
+    -23.1,
+    0.0,
+    33.3,
+    23.1,
+    16.0
+   ],
+   "label": "M1 y_idler_mount_L (4mm, 上面 z=16)"
+  },
+  "y_idler_mount_R": {
+   "signature": [
+    21347.0,
+    -33.3,
+    -23.1,
+    0.0,
+    33.3,
+    23.1,
+    16.0
+   ],
+   "label": "M1 y_idler_mount_R (4mm, 上面 z=16)"
+  },
+  "tool_rack": {
+   "signature": [
+    155968.0,
+    -30.0,
+    -65.0,
+    0.0,
+    30.0,
+    65.0,
+    66.0
+   ],
+   "label": "M1 tool_rack (2.5mm, 底面)"
+  },
+  "palette_tray": {
+   "signature": [
+    88144.0,
+    -40.0,
+    -120.0,
+    0.0,
+    40.0,
+    120.0,
+    8.0
+   ],
+   "label": "M1 palette_tray (4mm, 底面)"
+  },
+  "jar_cup": {
+   "signature": [
+    32910.0,
+    -33.0,
+    -33.0,
+    0.0,
+    33.0,
+    33.0,
+    53.0
+   ],
+   "label": "M1 jar_cup (4mm, 上面 z=53)"
+  },
+  "wipe_block": {
+   "signature": [
+    10598.0,
+    -48.0,
+    -20.0,
+    0.0,
+    48.0,
+    20.0,
+    7.0
+   ],
+   "label": "M1 wipe_block (4mm, 底面)"
+  },
+  "canvas_corner_0": {
+   "signature": [
+    8459.0,
+    -29.0,
+    -47.5,
+    0.0,
+    29.0,
+    47.5,
+    4.0
+   ],
+   "label": "M1 canvas_corner_0 (3.5mm, 底面)"
+  },
+  "canvas_corner_1": {
+   "signature": [
+    8460.0,
+    -29.0,
+    -47.5,
+    0.0,
+    29.0,
+    47.5,
+    4.0
+   ],
+   "label": "M1 canvas_corner_1 (3.5mm, 底面)"
+  },
+  "canvas_corner_2": {
+   "signature": [
+    8460.0,
+    -29.0,
+    -47.5,
+    0.0,
+    29.0,
+    47.5,
+    4.0
+   ],
+   "label": "M1 canvas_corner_2 (3.5mm, 底面)"
+  },
+  "canvas_corner_3": {
+   "signature": [
+    8460.0,
+    -29.0,
+    -47.5,
+    0.0,
+    29.0,
+    47.5,
+    4.0
+   ],
+   "label": "M1 canvas_corner_3 (3.5mm, 底面)"
+  },
+  "camera_bracket": {
+   "signature": [
+    32734.0,
+    -25.0,
+    -29.0,
+    0.0,
+    25.0,
+    29.0,
+    36.0
+   ],
+   "label": "M1 camera_bracket (3mm, 底面)"
+  },
+  "light_clip": {
+   "signature": [
+    9567.0,
+    -15.0,
+    -15.0,
+    0.0,
+    15.0,
+    15.0,
+    30.0
+   ],
+   "label": "M1 light_clip (2.5mm, 上面 z=30)"
+  },
+  "foot": {
+   "signature": [
+    30745.0,
+    -20.0,
+    -20.0,
+    0.0,
+    20.0,
+    20.0,
+    20.0
+   ],
+   "label": "M1 foot (4mm, 底面)"
+  },
+  "length_gauge": {
+   "signature": [
+    27928.0,
+    -20.0,
+    -15.0,
+    0.0,
+    20.0,
+    15.0,
+    35.0
+   ],
+   "label": "M1 length_gauge (2.5mm, 底面)"
+  },
+  "holder_flat_large": {
+   "signature": [
+    12675.0,
+    -14.0,
+    -14.0,
+    0.0,
+    14.0,
+    14.0,
+    40.0
+   ],
+   "label": "M1 (3mm, 上面 z=8)"
+  },
+  "holder_flat_medium": {
+   "signature": [
+    13188.0,
+    -14.0,
+    -14.0,
+    0.0,
+    14.0,
+    14.0,
+    40.0
+   ],
+   "label": "M1 (3mm, 上面 z=8)"
+  },
+  "holder_round_medium": {
+   "signature": [
+    13471.0,
+    -14.0,
+    -14.0,
+    0.0,
+    14.0,
+    14.0,
+    40.0
+   ],
+   "label": "M1 (3mm, 上面 z=8)"
+  },
+  "holder_round_small": {
+   "signature": [
+    13706.0,
+    -14.0,
+    -14.0,
+    0.0,
+    14.0,
+    14.0,
+    40.0
+   ],
+   "label": "M1 (3mm, 上面 z=8)"
+  }
+ }
+}

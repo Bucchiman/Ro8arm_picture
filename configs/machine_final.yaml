@@ -40,7 +40,7 @@ wash:
 
 # Rag for wiping solvent/paint off the brush after washing.
 wipe:
-  position: [630, 190]
+  position: [620, 220]    # leaves room for a second (rinse) jar at [630, 148] (machine/cad/machine.py)
   length: 60
   passes: 3
 
@@ -49,12 +49,12 @@ wipe:
 camera:
   resolution: [1600, 1200]
   canvas_corners: [[250, 160], [1370, 140], [1450, 1070], [170, 1090]]
-  park: [690, 440]
+  park: [630, 450]       # front edge, outside the rack column: the beam sits in front of the head, out of view
   capture_s: 5.0
 
 # Brush rack for the tool changer.
 brush_rack:
-  origin: [640, 280]
+  origin: [690, 280]      # rightmost column: travel moves with a brush never cross the parked brushes
   pitch: 30
   # Brushes are drawn coarse -> fine; the stroke generator uses this order for its layers.
 brushes:

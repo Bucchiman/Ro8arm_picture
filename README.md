@@ -93,6 +93,16 @@ $ python -m http.server -d out/twin_fuji04 8000     # http://127.0.0.1:8000（fi
 - 視点: 全体 / 真上 / ヘッド追従 / ステーション。速度は実時間〜6000 倍、タイムラインの目盛りは筆替え（青）と補充の一時停止（茶）
 - 寸法は設計目標値。洗浄は壺 1 つで再現している（§2 の 2 つ目の壺は未対応）
 
+## 完成機の CAD（`machine/`）
+平台プロッタ型の完成機を Python（manifold3d）で作ったもの。配置は `configs/machine_final.yaml` から読み、ソフト・デジタルツインと同じ値になる。
+
+```bash
+$ uv pip install --python .venv/bin/python -e '.[cad]'
+$ .venv/bin/python machine/cad/machine.py           # STL・組立 GLB・部品表・天板の切り出し図・プレビュー
+$ python -m http.server -d machine/cad 8000         # http://127.0.0.1:8000/viewer.html
+```
+詳細・チェック内容・部品表は `machine/README.md`。試験装置（筆 1 本）の部品は `rig/README.md`。
+
 ## スタイル変換 Web UI（`painter webui`）
 画像をアップロードすると、ローカル GPU 上の生成AIで油絵・ゴッホ風・モネ風・浮世絵・水彩・点描・フォーヴィスム（または自由なプロンプト）に変換する。
 結果を選んで「油絵シミュレーション」を押すと、上の painter パイプラインにそのまま流し、キャンバス・パレット・工程動画・G-code を表示する。

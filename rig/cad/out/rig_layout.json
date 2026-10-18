@@ -1,5 +1,6 @@
 {
   "note": "design values; jog only marker 0 (rig_plan 3.2). head: origin = nozzle tip",
+  "version": "R1",
   "head": {
     "brush_offset_from_nozzle": [
       0.0,

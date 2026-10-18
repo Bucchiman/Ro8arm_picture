@@ -1,0 +1,79 @@
+{
+  "note": "design values from machine/cad/machine.py; machine coordinates, Z = 0 at the canvas surface, head = brush tip",
+  "config": "configs/machine_final.yaml",
+  "version": "M1",
+  "work_area": {
+    "x": [
+      0,
+      700
+    ],
+    "y": [
+      0,
+      450
+    ],
+    "z": [
+      -25,
+      50
+    ]
+  },
+  "heights": {
+    "deck_top": -5.0,
+    "palette_top": 3.0,
+    "palette_floor": -3.0,
+    "jar_rim": 3.0,
+    "jar_fill": -8.0,
+    "rack_fork_top": 61.0,
+    "camera_lens": 600.0
+  },
+  "tool": {
+    "stick_out": 30.0,
+    "coupling_face_from_tip": 70.0,
+    "handle_d": {
+      "flat_large": 8.0,
+      "flat_medium": 6.5,
+      "round_medium": 5.5,
+      "round_small": 4.5
+    }
+  },
+  "head": {
+    "a_motor_center_distance": 39.49,
+    "float_stroke": 10.0,
+    "spring_preload": 4.0
+  },
+  "rinse_jar": [
+    630,
+    148.0
+  ],
+  "markers": {
+    "0": [
+      55.0,
+      40.0
+    ],
+    "1": [
+      435.0,
+      40.0
+    ],
+    "2": [
+      435.0,
+      410.0
+    ],
+    "3": [
+      55.0,
+      410.0
+    ]
+  },
+  "frame": {
+    "x": [
+      -75.0,
+      805.0
+    ],
+    "y": [
+      -80.0,
+      660.0
+    ],
+    "z": [
+      -77.0,
+      660.0
+    ]
+  }
+}

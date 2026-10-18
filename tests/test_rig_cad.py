@@ -24,7 +24,9 @@ def test_all_checks_pass(rig, capsys):
 
 
 def test_parts_are_watertight_and_fit_bed(rig, tmp_path):
-    for name, m in rig.print_orient().items():
+    parts, labels = rig.labeled_parts()
+    for name, m in parts.items():
+        assert labels[name] and labels[name].startswith(f"{rig.PREFIX}{rig.VERSION}"), name
         t = rig.save_stl(m, tmp_path / f"{name}.stl")
         size = t.bounds[1] - t.bounds[0]
         assert t.is_watertight and t.volume > 0, name
@@ -37,3 +39,10 @@ def test_layout_json_is_relative_to_marker0(rig):
     assert lay["bed"]["markers"]["0"] == [0.0, 0.0]
     assert lay["head"]["brush_offset_from_nozzle"] == [0.0, rig.BRUSH_Y, -rig.TIP_BELOW_NOZZLE]
     assert set(lay["bed"]["stations"]) == {"paint_a", "paint_b", "wash", "wipe"}
+
+
+def test_version_bumped_when_geometry_changes(rig):
+    """rig/cad/out は今の設計と同じで、形を変えたら VERSION も上げてある（印刷した部品の版が分かるように）。"""
+    parts, _ = rig.labeled_parts()
+    problems = rig.check_manifest(str(RIG.parent / "out" / "manifest.json"), f"{rig.PREFIX}{rig.VERSION}", parts)
+    assert not problems, problems

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880.0mm" height="740.0mm" viewBox="-75.0 -80.0 880.0 740.0">
+<rect x="-75.0" y="-80.0" width="880.0" height="740.0" fill="none" stroke="black" stroke-width="0.3"/>
+<rect x="-75.5" y="10.5" width="21.0" height="41.0" fill="none" stroke="red" stroke-width="0.3"/>
+<rect x="-75.5" y="560.5" width="21.0" height="41.0" fill="none" stroke="red" stroke-width="0.3"/>
+<rect x="784.5" y="10.5" width="21.0" height="41.0" fill="none" stroke="red" stroke-width="0.3"/>
+<rect x="784.5" y="560.5" width="21.0" height="41.0" fill="none" stroke="red" stroke-width="0.3"/>
+<circle cx="630" cy="80" r="31.5" fill="none" stroke="red" stroke-width="0.3"/>
+<circle cx="630" cy="148.0" r="31.5" fill="none" stroke="red" stroke-width="0.3"/>
+<circle cx="520.0" cy="33" r="3.0" fill="none" stroke="red" stroke-width="0.3"/>
+<circle cx="520.0" cy="257" r="3.0" fill="none" stroke="red" stroke-width="0.3"/>
+<rect x="40" y="66" width="410" height="318" fill="none" stroke="blue" stroke-width="0.3" stroke-dasharray="4 2"/>
+<text x="45" y="78" font-size="8" fill="blue">canvas 410x318 (origin [40, 66])</text>
+<circle cx="500" cy="45" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="540" cy="45" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="500" cy="85" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="540" cy="85" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="500" cy="125" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="540" cy="125" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="500" cy="165" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="540" cy="165" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="500" cy="205" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="540" cy="205" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="500" cy="245" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="540" cy="245" r="17.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="690" cy="280" r="14.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="690" cy="310" r="14.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="690" cy="340" r="14.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<circle cx="690" cy="370" r="14.0" fill="none" stroke="blue" stroke-width="0.2" stroke-dasharray="2 2"/>
+<text x="-70.0" y="655.0" font-size="8">deck MDF 12mm, 880x740 mm, machine coords (Y = 0 at the back). red = cut, blue = reference</text>
+</svg>
