@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -18,22 +19,47 @@ class PaletteResult:
         return self.colors_rgb[self.labels]
 
 
+def crop_to_aspect(rgb: np.ndarray, ratio: float) -> np.ndarray:
+    """Center-crop an image to width / height == ratio."""
+    h, w = rgb.shape[:2]
+    if w / h > ratio:
+        new_w = int(round(h * ratio))
+        x0 = (w - new_w) // 2
+        return rgb[:, x0 : x0 + new_w]
+    new_h = int(round(w / ratio))
+    y0 = (h - new_h) // 2
+    return rgb[y0 : y0 + new_h]
+
+
+HEIF_SUFFIXES = {".heic", ".heif", ".hif"}
+
+
+def read_rgb(path: str | Path) -> np.ndarray:
+    """Read an image file as uint8 RGB, upright according to its EXIF orientation.
+
+    OpenCV handles the common formats; HEIC/HEIF (iPhone photos) go through Pillow + pillow-heif.
+    """
+    path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    if path.suffix.lower() not in HEIF_SUFFIXES:
+        bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)  # applies EXIF orientation itself
+        if bgr is not None:
+            return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    from PIL import Image, ImageOps, UnidentifiedImageError
+    from pillow_heif import register_heif_opener
+
+    register_heif_opener()
+    try:
+        with Image.open(path) as im:
+            return np.asarray(ImageOps.exif_transpose(im).convert("RGB"))
+    except UnidentifiedImageError as e:
+        raise ValueError(f"unsupported image format: {path}") from e
+
+
 def load_target(path: str, canvas_w_mm: float, canvas_h_mm: float, px_per_mm: float) -> np.ndarray:
     """Load an image as RGB and center-crop/resize it to the canvas aspect ratio."""
-    bgr = cv2.imread(path, cv2.IMREAD_COLOR)
-    if bgr is None:
-        raise FileNotFoundError(path)
-    rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
-    h, w = rgb.shape[:2]
-    target_ratio = canvas_w_mm / canvas_h_mm
-    if w / h > target_ratio:
-        new_w = int(round(h * target_ratio))
-        x0 = (w - new_w) // 2
-        rgb = rgb[:, x0 : x0 + new_w]
-    else:
-        new_h = int(round(w / target_ratio))
-        y0 = (h - new_h) // 2
-        rgb = rgb[y0 : y0 + new_h]
+    rgb = crop_to_aspect(read_rgb(path), canvas_w_mm / canvas_h_mm)
     size = (int(round(canvas_w_mm * px_per_mm)), int(round(canvas_h_mm * px_per_mm)))
     return cv2.resize(rgb, size, interpolation=cv2.INTER_AREA)
 

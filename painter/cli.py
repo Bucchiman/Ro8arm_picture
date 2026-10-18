@@ -8,6 +8,7 @@
   painter gcode-sim out/program.gcode -o out/gcode_sim [--video]     run the G-code (with Klipper macros) + checks
   painter loop IMAGE -o out/loop [--video]    closed loop: photograph the canvas after every layer, replan from it
   painter -c configs/machine_final.yaml twin IMAGE -o out/twin    3D digital twin viewer of the final machine
+  painter webui                               upload -> style transfer -> simulate (needs .[style] or .[gemini])
 """
 
 from __future__ import annotations
@@ -290,6 +291,13 @@ def cmd_twin(args) -> None:
     print(f"wrote {index} + twin_data.json ({size:.1f} MB)   view: python -m http.server -d {out}")
 
 
+def cmd_webui(args) -> None:
+    from painter.webui import launch
+
+    launch(args.config, args.host, args.port, True if args.offload else None, args.px_per_mm, args.backend,
+           args.gemini_model)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="painter")
     ap.add_argument("-c", "--config", default=str(DEFAULT_CONFIG))
@@ -375,6 +383,16 @@ def main(argv: list[str] | None = None) -> int:
     sim_args(p)
     p.add_argument("-o", "--output", default="out")
     p.set_defaults(func=cmd_run)
+
+    p = sub.add_parser("webui")
+    p.add_argument("--host", default="127.0.0.1", help="0.0.0.0 to open it to other machines")
+    p.add_argument("--port", type=int, default=7860)
+    p.add_argument("--backend", choices=["auto", "sdxl", "gemini"], default="auto",
+                   help="auto = local SDXL if the GPU has >= 12 GiB VRAM, else Gemini (needs GEMINI_API_KEY)")
+    p.add_argument("--offload", action="store_true",
+                   help="sdxl: always use CPU offload (default: only when free VRAM is short)")
+    p.add_argument("--gemini-model", default=None, help="gemini: model name (default gemini-2.5-flash-image)")
+    p.set_defaults(func=cmd_webui)
 
     args = ap.parse_args(argv)
     return args.func(args) or 0
