@@ -54,6 +54,7 @@ function setView(k) { const [p, t] = views[k]; camera.position.copy(p); controls
 new THREE.GLTFLoader().load('out/machine_assembly.glb', (g) => {
   g.scene.traverse((o) => {
     if (!o.isMesh) return;
+    if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();   // GLB に法線がないと真っ黒になる
     const name = o.name.replace(/^\d+_/, '');
     const k = FRAME.some((f) => name.startsWith(f)) ? 'frame' : (o.material.metalness > 0.1 ? 'purchased' : 'printed');
     groups[k].push(o);
