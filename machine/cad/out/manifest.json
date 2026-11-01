@@ -1,5 +1,5 @@
 {
- "version": "M2",
+ "version": "M3",
  "parts": {
   "x_carriage": {
    "signature": [
@@ -11,7 +11,7 @@
     78.5,
     69.2
    ],
-   "label": "M2 x_carriage (3mm, 上面 z=32.15)"
+   "label": "M3 x_carriage (3mm, 上面 z=32.15)"
   },
   "z_slide": {
    "signature": [
@@ -23,7 +23,7 @@
     34.5,
     42.0
    ],
-   "label": "M2 z_slide (3.5mm, 底面)"
+   "label": "M3 z_slide (3.5mm, 底面)"
   },
   "float": {
    "signature": [
@@ -35,7 +35,7 @@
     26.8,
     30.0
    ],
-   "label": "M2 float (3mm, 底面)"
+   "label": "M3 float (3mm, 底面)"
   },
   "coupler": {
    "signature": [
@@ -47,7 +47,7 @@
     14.0,
     8.0
    ],
-   "label": "M2 (4mm, 底面)"
+   "label": "M3 (4mm, 底面)"
   },
   "gantry_end_L": {
    "signature": [
@@ -59,7 +59,7 @@
     23.0,
     59.2
    ],
-   "label": "M2 gantry_end_L (4mm, 上面 z=26)"
+   "label": "M3 gantry_end_L (4mm, 上面 z=26)"
   },
   "gantry_end_R": {
    "signature": [
@@ -71,7 +71,7 @@
     23.0,
     59.2
    ],
-   "label": "M2 gantry_end_R (4mm, 上面 z=26)"
+   "label": "M3 gantry_end_R (4mm, 上面 z=26)"
   },
   "y_motor_mount_L": {
    "signature": [
@@ -83,7 +83,7 @@
     28.6,
     16.0
    ],
-   "label": "M2 y_motor_mount_L (3mm, 上面 z=16)"
+   "label": "M3 y_motor_mount_L (3mm, 上面 z=16)"
   },
   "y_motor_mount_R": {
    "signature": [
@@ -95,7 +95,7 @@
     28.6,
     16.0
    ],
-   "label": "M2 y_motor_mount_R (3mm, 上面 z=16)"
+   "label": "M3 y_motor_mount_R (3mm, 上面 z=16)"
   },
   "y_idler_mount_L": {
    "signature": [
@@ -107,7 +107,7 @@
     23.1,
     16.0
    ],
-   "label": "M2 y_idler_mount_L (4mm, 上面 z=16)"
+   "label": "M3 y_idler_mount_L (4mm, 上面 z=16)"
   },
   "y_idler_mount_R": {
    "signature": [
@@ -119,19 +119,19 @@
     23.1,
     16.0
    ],
-   "label": "M2 y_idler_mount_R (4mm, 上面 z=16)"
+   "label": "M3 y_idler_mount_R (4mm, 上面 z=16)"
   },
   "tool_rack": {
    "signature": [
-    155967.0,
+    261267.0,
     -30.0,
     -65.0,
     0.0,
     30.0,
     65.0,
-    66.0
+    120.0
    ],
-   "label": "M2 tool_rack (2.5mm, 底面)"
+   "label": "M3 tool_rack (2.5mm, 底面)"
   },
   "palette_tray": {
    "signature": [
@@ -143,7 +143,7 @@
     120.0,
     8.0
    ],
-   "label": "M2 palette_tray (4mm, 底面)"
+   "label": "M3 palette_tray (4mm, 底面)"
   },
   "jar_cup": {
    "signature": [
@@ -155,7 +155,7 @@
     33.0,
     53.0
    ],
-   "label": "M2 jar_cup (4mm, 上面 z=53)"
+   "label": "M3 jar_cup (4mm, 上面 z=53)"
   },
   "wipe_block": {
    "signature": [
@@ -167,7 +167,7 @@
     20.0,
     7.0
    ],
-   "label": "M2 wipe_block (4mm, 底面)"
+   "label": "M3 wipe_block (4mm, 底面)"
   },
   "canvas_corner_0": {
    "signature": [
@@ -179,7 +179,7 @@
     47.5,
     4.0
    ],
-   "label": "M2 canvas_corner_0 (3.5mm, 底面)"
+   "label": "M3 canvas_corner_0 (3.5mm, 底面)"
   },
   "canvas_corner_1": {
    "signature": [
@@ -191,7 +191,7 @@
     47.5,
     4.0
    ],
-   "label": "M2 canvas_corner_1 (3.5mm, 底面)"
+   "label": "M3 canvas_corner_1 (3.5mm, 底面)"
   },
   "canvas_corner_2": {
    "signature": [
@@ -203,11 +203,11 @@
     47.5,
     4.0
    ],
-   "label": "M2 canvas_corner_2 (3.5mm, 底面)"
+   "label": "M3 canvas_corner_2 (3.5mm, 底面)"
   },
   "canvas_corner_3": {
    "signature": [
-    8460.0,
+    8459.0,
     -29.0,
     -47.5,
     0.0,
@@ -215,7 +215,7 @@
     47.5,
     4.0
    ],
-   "label": "M2 canvas_corner_3 (3.5mm, 底面)"
+   "label": "M3 canvas_corner_3 (3.5mm, 底面)"
   },
   "camera_bracket": {
    "signature": [
@@ -227,7 +227,7 @@
     29.0,
     36.0
    ],
-   "label": "M2 camera_bracket (3mm, 底面)"
+   "label": "M3 camera_bracket (3mm, 底面)"
   },
   "light_clip": {
    "signature": [
@@ -239,7 +239,7 @@
     15.0,
     30.0
    ],
-   "label": "M2 light_clip (2.5mm, 上面 z=30)"
+   "label": "M3 light_clip (2.5mm, 上面 z=30)"
   },
   "foot": {
    "signature": [
@@ -251,67 +251,187 @@
     20.0,
     20.0
    ],
-   "label": "M2 foot (4mm, 底面)"
+   "label": "M3 foot (4mm, 底面)"
   },
   "length_gauge": {
    "signature": [
-    27927.0,
+    81850.0,
     -20.0,
-    -15.0,
+    -17.0,
     0.0,
     20.0,
-    15.0,
-    35.0
+    17.0,
+    77.0
    ],
-   "label": "M2 length_gauge (2.5mm, 底面)"
+   "label": "M3 length_gauge (2.5mm, 底面)"
   },
-  "holder_flat_large": {
+  "holder": {
    "signature": [
-    12675.0,
+    18559.0,
     -14.0,
     -14.0,
     0.0,
     14.0,
     14.0,
-    40.0
+    48.0
    ],
-   "label": "M2 (3mm, 上面 z=8)"
+   "label": "M3 (3mm, 上面 z=8)"
   },
-  "holder_flat_medium": {
+  "sleeve_d4.0": {
    "signature": [
-    12713.0,
-    -14.0,
-    -14.0,
+    4739.0,
+    -13.0,
+    -13.0,
     0.0,
-    14.0,
-    14.0,
-    40.0
+    13.0,
+    13.0,
+    27.5
    ],
-   "label": "M2 (3mm, 上面 z=8)"
+   "label": "M3 Ø4.0 (3.5mm, 底面)"
   },
-  "holder_round_medium": {
+  "sleeve_d4.5": {
    "signature": [
-    13471.0,
-    -14.0,
-    -14.0,
+    4651.0,
+    -13.0,
+    -13.0,
     0.0,
-    14.0,
-    14.0,
-    40.0
+    13.0,
+    13.0,
+    27.5
    ],
-   "label": "M2 (3mm, 上面 z=8)"
+   "label": "M3 Ø4.5 (3.5mm, 底面)"
   },
-  "holder_round_small": {
+  "sleeve_d5.0": {
    "signature": [
-    13706.0,
-    -14.0,
-    -14.0,
+    4551.0,
+    -13.0,
+    -13.0,
     0.0,
-    14.0,
-    14.0,
-    40.0
+    13.0,
+    13.0,
+    27.5
    ],
-   "label": "M2 (3mm, 上面 z=8)"
+   "label": "M3 Ø5.0 (3.5mm, 底面)"
+  },
+  "sleeve_d5.5": {
+   "signature": [
+    4440.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø5.5 (3.5mm, 底面)"
+  },
+  "sleeve_d6.0": {
+   "signature": [
+    4319.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø6.0 (3.5mm, 底面)"
+  },
+  "sleeve_d6.5": {
+   "signature": [
+    4187.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø6.5 (3.5mm, 底面)"
+  },
+  "sleeve_d7.0": {
+   "signature": [
+    4045.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø7.0 (3.5mm, 底面)"
+  },
+  "sleeve_d7.5": {
+   "signature": [
+    3891.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø7.5 (3.5mm, 底面)"
+  },
+  "sleeve_d8.0": {
+   "signature": [
+    3726.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø8.0 (3.5mm, 底面)"
+  },
+  "sleeve_d8.5": {
+   "signature": [
+    3551.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø8.5 (3.5mm, 底面)"
+  },
+  "sleeve_d9.0": {
+   "signature": [
+    3365.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø9.0 (3.5mm, 底面)"
+  },
+  "sleeve_d9.5": {
+   "signature": [
+    3169.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø9.5 (3.5mm, 底面)"
+  },
+  "sleeve_d10.0": {
+   "signature": [
+    2963.0,
+    -13.0,
+    -13.0,
+    0.0,
+    13.0,
+    13.0,
+    27.5
+   ],
+   "label": "M3 Ø10.0 (3mm, 底面)"
   }
  }
 }

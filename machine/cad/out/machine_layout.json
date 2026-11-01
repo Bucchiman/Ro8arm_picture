@@ -1,7 +1,7 @@
 {
   "note": "design values from machine/cad/machine.py; machine coordinates, Z = 0 at the canvas surface, head = brush tip",
   "config": "configs/machine_final.yaml",
-  "version": "M2",
+  "version": "M3",
   "work_area": {
     "x": [
       0,
@@ -22,15 +22,70 @@
     "palette_floor": -3.0,
     "jar_rim": 3.0,
     "jar_fill": -8.0,
-    "rack_fork_top": 61.0,
+    "rack_fork_top": 115.0,
     "camera_lens": 600.0
   },
   "tool": {
-    "stick_out": 30.0,
-    "coupling_face_from_tip": 70.0,
-    "handle_d": {
+    "stick_out": 72.0,
+    "coupling_face_from_tip": 124.0,
+    "handle_cut_from_tip": 106.0,
+    "ferrule_max": 70.0,
+    "sleeves": [
+      4.0,
+      4.5,
+      5.0,
+      5.5,
+      6.0,
+      6.5,
+      7.0,
+      7.5,
+      8.0,
+      8.5,
+      9.0,
+      9.5,
+      10.0
+    ],
+    "brushes": {
+      "flat_large": {
+        "A": 25.0,
+        "B": 40.0,
+        "D": [
+          22.0,
+          3.5
+        ],
+        "E": 8.0
+      },
+      "flat_medium": {
+        "A": 18.3,
+        "B": 40.0,
+        "D": [
+          9.3,
+          3.0
+        ],
+        "E": 7.9
+      },
+      "round_medium": {
+        "A": 14.0,
+        "B": 35.0,
+        "D": [
+          5.5,
+          5.5
+        ],
+        "E": 5.5
+      },
+      "round_small": {
+        "A": 10.0,
+        "B": 30.0,
+        "D": [
+          4.0,
+          4.0
+        ],
+        "E": 4.5
+      }
+    },
+    "sleeve_for": {
       "flat_large": 8.0,
-      "flat_medium": 7.9,
+      "flat_medium": 8.0,
       "round_medium": 5.5,
       "round_small": 4.5
     }

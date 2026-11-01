@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.join(ROOT, "rig", "cad"))
 from labels import check_manifest, engrave_label, label_texts, write_manifest  # noqa: E402
 
 # 部品の形を 1 か所でも変えたら上げる。全部の印刷部品の底面に「M<VERSION>」を刻む（M = 完成機）
-VERSION = "2"
+VERSION = "3"
 PREFIX = "M"
 OUT = os.path.join(HERE, "out")
 PREV = os.path.join(HERE, "preview")
@@ -71,24 +71,44 @@ BASE_BOT = BASE_TOP - 40.0
 FOOT_H = 20.0
 
 # ---------------------------------------------------------------- 筆ホルダー（筆先から上へ。全部の筆で同じになるよう、ゲージで突き出しを合わせる）
-STICK_OUT = 30.0      # 筆先 → ホルダー下端（毛と金具の一部が出る）。ゲージ length_gauge で合わせる
-COLLET_D, COLLET_Z = 22.0, (30.0, 46.0)
-FLANGE_D, FLANGE_Z = 24.0, (46.0, 54.0)    # 下のつば: ラックから外すとき、フォークの下面に当たって磁石を引き離す
-NECK_D, NECK_Z = 14.0, (54.0, 62.0)        # 首: ラックのフォークの溝に入る
-DISC_D, DISC_Z = 28.0, (62.0, 70.0)        # 上の円板: 上面がカップリング面。ラックではフォークの上に載って吊られる
-FACE_Z = DISC_Z[1]                         # カップリング面（筆先から 70mm）
+# 汎用: ホルダーは全部の筆で同じ形。柄の太さはスリーブ（Ø4〜Ø10、0.5 刻み）で吸収し、長さはゲージで突き出しを合わせる。
+# 付けられる筆: 毛 + 金具（A + B）が FERRULE_MAX 以下、柄の太さ（金具のすぐ上）が SLEEVE_DS の範囲、柄を筆先から HANDLE_CUT で切る。
+# 金具（B が 40mm ある）はホルダーの下に出し、木の柄だけをつかむ。
+FERRULE_MAX = 70.0    # 筆先 → 金具の木側の端（A + B）の上限（測った筆は 56.5）
+STICK_OUT = 72.0      # 筆先 → スリーブのつば下面（ゲージ length_gauge の上面に当てる面）
+LIP_W, LIP_H = 26.0, 4.0                   # スリーブのつば（26 角、下面に版と径を刻む。抜くときのつまみ）
+COLLET_D, COLLET_Z = 26.0, (76.0, 100.0)    # 割りクランプ（M3 ×2 で締める）。中にスリーブが入る
+SLEEVE_OD, SLEEVE_BORE = 11.8, 12.0        # スリーブの外径 / ホルダーの穴（スリーブは穴の段 z = 100 で止まる）
+HANDLE_BORE = 10.8                         # 段より上の柄の通り（Ø10 の柄まで）
+SLEEVE_DS = [4.0 + 0.5 * i for i in range(13)]   # スリーブの内径の呼び（柄の太さ）Ø4.0〜Ø10.0
+FLANGE_D, FLANGE_Z = 28.0, (100.0, 108.0)    # 下のつば: ラックから外すとき、フォークの下面に当たって磁石を引き離す
+NECK_D, NECK_Z = 14.0, (108.0, 116.0)       # 首: ラックのフォークの溝に入る（柄は通らない、中実）
+DISC_D, DISC_Z = 28.0, (116.0, 124.0)      # 上の円板: 上面がカップリング面。ラックではフォークの上に載って吊られる
+FACE_Z = DISC_Z[1]                         # カップリング面（筆先から 124mm）
+HANDLE_CUT = FLANGE_Z[1] - 2               # 柄はここ（筆先から 106mm）より短く切る（柄の穴の底まで 2mm 残す）
 BALL_D, BALL_R = 6.0, 10.0                 # 鋼球 Ø6 ×3（主軸側）、半径 10 の円周上 120° おき
 MAG_D, MAG_T = 8.0, 3.0                    # ネオジム磁石 Ø8×3 ×3（主軸側）+ 同寸の磁石 ×3（ホルダー側）
-HANDLE_D = {"flat_large": 8.0, "flat_medium": 7.9, "round_medium": 5.5, "round_small": 4.5}   # ★ 柄の径（flat_medium は実測 2026-10-18）
-HAIR_L = {"flat_large": 25.0, "flat_medium": 18.3, "round_medium": 14.0, "round_small": 10.0}  # ★ 毛の長さ（flat_medium は実測）
+# 筆の寸法（mm）: A 毛の長さ、B 金具の長さ、D 金具の先の幅・厚み、E 柄の太さ（金具のすぐ上）。
+# flat_medium の A・E は 2026-10-18 の実測、B・D は 2026-11-01 に測った筆（どれか未確認）の値。他は ★（買ったら測る）
+BRUSH_DIMS = {
+    "flat_large": dict(A=25.0, B=40.0, D=(22.0, 3.5), E=8.0),
+    "flat_medium": dict(A=18.3, B=40.0, D=(9.3, 3.0), E=7.9),
+    "round_medium": dict(A=14.0, B=35.0, D=(5.5, 5.5), E=5.5),
+    "round_small": dict(A=10.0, B=30.0, D=(4.0, 4.0), E=4.5),
+}
+
+
+def sleeve_for(d_handle):
+    """柄の太さに合うスリーブの呼び（柄より 0〜0.5mm 大きい）。"""
+    return min(d for d in SLEEVE_DS if d >= d_handle - 1e-6)
 
 # ---------------------------------------------------------------- 主軸・フロート（ばねで上に逃げる部分）
-COUPLER_Z = (70.0, 78.0)
-SPINDLE_D, SPINDLE_Z = 8.0, (72.0, 140.0)  # Ø8 シャフト
+COUPLER_Z = (124.0, 132.0)
+SPINDLE_D, SPINDLE_Z = 8.0, (126.0, 194.0)  # Ø8 シャフト
 BRG_OD, BRG_W = 22.0, 7.0                  # 608ZZ
-HOUSING_D, HOUSING_Z = 32.0, (80.0, 104.0)
-PLATE_Z = (104.0, 110.0)
-PULLEY_Z = (112.0, 128.0)
+HOUSING_D, HOUSING_Z = 32.0, (134.0, 158.0)
+PLATE_Z = (158.0, 164.0)
+PULLEY_Z = (166.0, 182.0)
 GT2_PITCH = 2.0
 A_TEETH = (20, 40)                         # モーター 20T → 主軸 40T（1:2）
 A_BELT_L = 140.0                           # GT2 閉ループ 140mm
@@ -105,37 +125,37 @@ NEMA17_HOLES = 31.0
 
 # ---------------------------------------------------------------- Z 軸（z_slide が MGN9 で上下、T8 で駆動）
 ZS_PLATE_Y = (36.0, 42.0)
-ZS_Z = (72.0, 141.0)
+ZS_Z = (126.0, 195.0)
 EAR_T = 8.0
 MGN9_H, MGN9_BLOCK_L, MGN9_BLOCK_W = 10.0, 39.9, 20.0     # ★ レール底からブロック上面 10
 MGN9_RAIL_W, MGN9_RAIL_H = 9.0, 6.5
-Z_RAIL_Z = (75.0, 225.0)                                   # MGN9 150mm（下端はラックの筆より上）
+Z_RAIL_Z = (129.0, 279.0)                                   # MGN9 150mm（下端はラックの筆より上）
 ZS_BLOCK_ZC = ZS_Z[1] - MGN9_BLOCK_L / 2                   # MGN9H は z_slide の上寄りに付ける
 SCREW_XY = (-36.0, 47.0)                                   # T8 の軸
 T8_NUT_FLANGE = 22.0
-T8_Z = (81.0, 201.0)                                       # T8×120
+T8_Z = (135.0, 255.0)                                       # T8×120
 
 # ---------------------------------------------------------------- X キャリッジ・ガントリー
 XC_PLATE_Y = (52.0, 58.0)
 XC_X = (-20.0, 20.0)
-XC_Z = (75.0, 226.0)          # 下端はラックに吊った筆（~69）より上: X キャリッジは Z で動かない
-ZMOTOR_SHELF_Z = (226.0, 232.0)
+XC_Z = (129.0, 280.0)         # 下端はラックに吊った筆（~123）より上: X キャリッジは Z で動かない
+ZMOTOR_SHELF_Z = (280.0, 286.0)
 MGN12_H, MGN12_BLOCK_L, MGN12_BLOCK_W = 13.0, 45.4, 27.0  # ★ MGN12H
 MGN12_RAIL_W, MGN12_RAIL_H = 12.0, 8.0
 BEAM_Y = (71.0, 91.0)                                      # 2040 縦置き（奥行 20・高さ 40）
-BEAM_Z = (160.0, 200.0)
+BEAM_Z = (214.0, 254.0)
 BEAM_X = (-66.0, 796.0)
 X_RAIL_X = (-50.0, 750.0)                                  # MGN12 800mm
-BELT_Z = (203.0, 209.0)
+BELT_Z = (257.0, 263.0)
 X_PULLEY_X, X_IDLER_X = -86.0, 816.0
 GANTRY_Y = sum(BEAM_Y) / 2                                 # 梁の中心（筆先からの Y オフセット）
 
 # ---------------------------------------------------------------- フレーム（Y レールは左右の 2040 の上）
 Y_BEAM_X = (-65.0, 795.0)                                  # 左右の Y 梁の中心
-Y_BEAM_Z = (97.0, 137.0)
+Y_BEAM_Z = (151.0, 191.0)
 Y_BEAM_Y = (11.0, 601.0)
 Y_RAIL_Y = (31.0, 581.0)                                   # MGN12 550mm
-Y_CAR_TOP = Y_BEAM_Z[1] + MGN12_H                          # = 150
+Y_CAR_TOP = Y_BEAM_Z[1] + MGN12_H                          # = 204
 Y_BELT_DX = -33.4                                          # Y ベルトの軸（梁の外側、左は -X 側）
 Y_PULLEY_Y, Y_IDLER_Y = -4.0, 600.0
 POST_Y = ((11.0, 51.0), (561.0, 601.0))
@@ -152,7 +172,7 @@ JAR_RIM = 3.0                                              # 瓶の縁の高さ
 JAR_FILL = -8.0                                            # 溶き油の液面
 RINSE = (WASH["position"][0], WASH["position"][1] + 68.0)  # 仕上げ洗い用の 2 つ目の瓶（ソフトは 1 つ目だけ使う）
 RAG_W = 40.0
-RACK_FORK_Z = (55.0, 61.0)
+RACK_FORK_Z = (109.0, 115.0)
 SLOT_W = 15.0
 MARKER = 30.0                                              # ArUco 30mm（ID 0-3）
 MARKER_OFF = 26.0                                          # キャンバスの上下の縁からマーカー中心まで（Y 方向）
@@ -288,24 +308,36 @@ def marker_centers():
 
 
 # ================================================================ ヘッド（筆先 = 原点、Z = 0、A = 0）
-def holder(brush_id):
-    """筆ホルダー。下から: 割りクランプ（柄）→ 下のつば → 首（ラックの溝）→ 上の円板（カップリング面）。"""
-    hd = HANDLE_D[brush_id] + 0.3
+def holder(brush_id=None):
+    """筆ホルダー（全部の筆で同じ）。下から: 割りクランプ（スリーブごと柄を締める）→ 下のつば → 首（ラックの溝）
+    → 上の円板（カップリング面）。柄の穴はつばの中で止まり、首と円板は中実。brush_id は使わない（呼び出し側の互換）。"""
     m = (cyl_z(COLLET_D / 2, *COLLET_Z) + cyl_z(FLANGE_D / 2, *FLANGE_Z) + cyl_z(NECK_D / 2, *NECK_Z)
          + cyl_z(DISC_D / 2, *DISC_Z))
-    m -= cyl_z(hd / 2, COLLET_Z[0] - 1, NECK_Z[1])                 # 柄の穴（円板の下で止める = 突き当て）
+    m -= cyl_z(SLEEVE_BORE / 2, COLLET_Z[0] - 1, COLLET_Z[1])                 # スリーブの穴（上端の段で止まる）
+    m -= cyl_z(HANDLE_BORE / 2, COLLET_Z[1] - 1, HANDLE_CUT + 1)              # 柄の通り（HANDLE_CUT の 1mm 上まで）
     m -= box(-0.75, 0.75, -COLLET_D, 0, COLLET_Z[0] - 1, COLLET_Z[1] - 2)   # 割り
-    zc = sum(COLLET_Z) / 2
-    m -= cyl_x(M3 / 2, -COLLET_D, COLLET_D, -hd / 2 - 3.2, zc)      # 締めねじ M3（割りを横切る）
-    m -= cyl_x(3.1, -COLLET_D, -4.5, -hd / 2 - 3.2, zc)             # 頭の座ぐり
     r = M3_NUT_AF / math.sqrt(3)
-    m -= Manifold.cylinder(COLLET_D, r, r, 6).rotate((0, 90, 0)).translate((4.5, -hd / 2 - 3.2, zc))
+    ys = -SLEEVE_BORE / 2 - 3.4
+    for zc in (COLLET_Z[0] + 6, COLLET_Z[1] - 8):                            # 締めねじ M3 ×2（割りを横切る）
+        m -= cyl_x(M3 / 2, -COLLET_D, COLLET_D, ys, zc)
+        m -= cyl_x(3.1, -COLLET_D, -4.5, ys, zc)                             # 頭の座ぐり
+        m -= Manifold.cylinder(COLLET_D, r, r, 6).rotate((0, 90, 0)).translate((4.5, ys, zc))
     # 上面: 鋼球を受ける溝 ×3（半径方向、丸溝）と磁石 ×3
     for a in (90, 210, 330):
         g = Manifold.cylinder(DISC_D, BALL_D / 2, BALL_D / 2, 24).rotate((0, 90, 0)).translate((2, 0, FACE_Z))
         m -= g.rotate((0, 0, a))
     for x, y in polar_pts(BALL_R, (30, 150, 270)):
         m -= cyl_z(MAG_D / 2 + 0.1, FACE_Z - MAG_T - 0.2, FACE_Z + 1, x, y, 24)
+    return m
+
+
+def sleeve(d):
+    """柄の太さ d 用のスリーブ。ホルダーの穴に下から差し、つばの上面がホルダーの下端に当たる。縦に割ってあるので、
+    ホルダーのねじで締めると一緒に縮んで柄をつかむ。つばの下面がゲージに当てる基準面（STICK_OUT）。"""
+    z0, z1 = STICK_OUT, COLLET_Z[1] - 0.5
+    m = box(-LIP_W / 2, LIP_W / 2, -LIP_W / 2, LIP_W / 2, z0, z0 + LIP_H) + cyl_z(SLEEVE_OD / 2, z0, z1)
+    m -= cyl_z((d + 0.2) / 2, z0 - 1, z1 + 1)
+    m -= box(-0.5, 0.5, -LIP_W, 0, z0 - 1, z1 + 1)                          # 割り（ホルダーの割りと同じ向き）
     return m
 
 
@@ -537,10 +569,12 @@ def canvas_corner(i):
 
 
 def length_gauge():
-    """筆の突き出しを STICK_OUT に合わせる治具: ホルダーの下端を当て、筆先が底に着く深さの穴。"""
-    m = box(-20, 20, -15, 15, 0, STICK_OUT + 5)
-    m -= cyl_z(COLLET_D / 2 + 0.5, 5, STICK_OUT + 6, -5, 0)            # ホルダー下端が穴の縁 z = 5 + STICK_OUT に当たる
-    m -= box(6, 21, -2, 2, 5, STICK_OUT + 6)                            # 平筆の毛の逃げ
+    """筆の突き出しを STICK_OUT に合わせる治具: 上面にスリーブのつばを当て、筆先が底（z = 5）に着くまで差してから締める。
+    穴は金具（幅 24・厚み 10 まで）と平筆の毛が通る溝。どの筆でも同じ治具で、カップリング面が筆先から FACE_Z になる。"""
+    m = box(-20, 20, -17, 17, 0, STICK_OUT + 5)
+    m -= box(-12, 12, -5, 5, 5, STICK_OUT + 6)                           # 金具・毛の通る溝（つば 26 角より狭い）
+    m -= cyl_z(7.0, 5, STICK_OUT + 6)                                    # 丸筆の金具
+    m -= box(-21, 21, -2, 2, 5, STICK_OUT - 10)                          # 横から筆先が底に着いたか見る窓
     return m
 
 
@@ -595,21 +629,25 @@ def pulley(teeth, cx, cy, z0, z1):
 
 
 def brush_dummy(brush_id):
+    """筆（毛・金具・柄）。柄は HANDLE_CUT で切ってある。"""
     b = next(b for b in BRUSHES if b["id"] == brush_id)
-    w, hair = b["width"], HAIR_L[brush_id]
+    d = BRUSH_DIMS[brush_id]
+    w, hair, f_end = b["width"], d["A"], d["A"] + d["B"]
     if b["kind"] == "flat":
         m = box(-w / 2, w / 2, -1.5, 1.5, 0, hair)                                       # 毛（A = 0 で X 方向に幅）
-        m += box(-w * 0.45, w * 0.45, -2.2, 2.2, hair, COLLET_Z[0] + 8)                  # 金具
+        dw, dt = d["D"]
+        m += box(-dw / 2, dw / 2, -dt / 2, dt / 2, hair, hair + 10)                        # 金具の平たい先
+        m += cyl_z(d["E"] / 2 + 0.3, hair + 10, f_end, 0, 0, 24)                         # 金具の丸い所
     else:
-        m = Manifold.cylinder(hair, w * 0.15, w / 2, 24).translate((0, 0, 0))
-        m += cyl_z(w * 0.5, hair, COLLET_Z[0] + 8, 0, 0, 24)
-    m += cyl_z(HANDLE_D[brush_id] / 2, COLLET_Z[0] + 8, NECK_Z[1], 0, 0, 24)              # 柄（突き当てまで）
+        m = Manifold.cylinder(hair, w * 0.15, w / 2, 24)
+        m += cyl_z(max(d["D"]) / 2, hair, f_end, 0, 0, 24)
+    m += cyl_z(d["E"] / 2, f_end, HANDLE_CUT, 0, 0, 24)                                  # 柄（切った端まで）
     return m
 
 
 def hair_only(brush_id):
     b = next(b for b in BRUSHES if b["id"] == brush_id)
-    w, hair = b["width"], HAIR_L[brush_id]
+    w, hair = b["width"], BRUSH_DIMS[brush_id]["A"]
     if b["kind"] == "flat":
         return box(-w / 2, w / 2, -1.5, 1.5, 0, hair)
     return Manifold.cylinder(hair, w * 0.15, w / 2, 24)
@@ -629,6 +667,7 @@ ALU = "#b9bec4"
 STEEL = "#5c6168"
 BLACK = "#24272c"
 GLASS = "#9fd3e6"
+SLEEVE_COLOR = "#3f8f6b"
 MDF = "#c8a978"
 WHITE = "#f4f1ea"
 
@@ -752,6 +791,8 @@ def static_parts(carried=None):
         x, y = rack_xy(i)
         drop = RACK_FORK_Z[1] - DISC_Z[0]          # ラックでは円板の下面がフォークの上面に載る
         P.append(Part(f"holder_{b['id']}_parked", holder(b["id"]).translate((x, y, drop)), PRINTED, "printed", "static"))
+        P.append(Part(f"sleeve_{b['id']}_parked", sleeve(sleeve_for(BRUSH_DIMS[b['id']]['E'])).translate((x, y, drop)),
+                      SLEEVE_COLOR, "printed", "static"))
         P.append(Part(f"brush_{b['id']}_parked", brush_dummy(b["id"]).translate((x, y, drop)), "#7f5539", "purchased",
                       "static"))
     # カメラの柱・腕・照明
@@ -825,6 +866,7 @@ def place(parts, x, y, z, a_deg=0.0, carried=None):
 
 def tool_parts(brush_id):
     return [Part(f"holder_{brush_id}", holder(brush_id), PRINTED, "printed", "tool"),
+            Part(f"sleeve_{brush_id}", sleeve(sleeve_for(BRUSH_DIMS[brush_id]["E"])), SLEEVE_COLOR, "printed", "tool"),
             Part(f"brush_{brush_id}", brush_dummy(brush_id), "#7f5539", "purchased", "tool")]
 
 
@@ -897,10 +939,10 @@ def check(verbose=True):
     widest = max(b["width"] for b in BRUSHES)
     inner = JAR_OD / 2 - JAR_WALL
     req(WASH_R + widest / 2 <= inner - 1, f"平筆大（{widest:.0f}mm）が円を描いても瓶の内壁に当たらない: {WASH_R + widest / 2:.1f} <= {inner - 1:.1f}")
-    req(WASH["depth_z"] + COLLET_Z[0] >= JAR_RIM + 3,
-        f"洗浄中もホルダーの下端 {WASH['depth_z'] + COLLET_Z[0]:.0f} が瓶の縁 {JAR_RIM} より 3mm 以上上")
-    req(min(Z_RANGE) + COLLET_Z[0] >= JAR_RIM + 2,
-        f"Z の下限 {min(Z_RANGE)} でもホルダーの下端が瓶の縁より上（{min(Z_RANGE) + COLLET_Z[0]:.0f} >= {JAR_RIM + 2}）")
+    req(WASH["depth_z"] + STICK_OUT >= JAR_RIM + 3,
+        f"洗浄中もホルダー（スリーブのつば）の下端 {WASH['depth_z'] + STICK_OUT:.0f} が瓶の縁 {JAR_RIM} より 3mm 以上上")
+    req(min(Z_RANGE) + STICK_OUT >= JAR_RIM + 2,
+        f"Z の下限 {min(Z_RANGE)} でもホルダーの下端が瓶の縁より上（{min(Z_RANGE) + STICK_OUT:.0f} >= {JAR_RIM + 2}）")
     req(-1.5 <= rag().bounding_box()[5] <= 0, "拭き取り布の上面が 0 付近（筆先 -1 で 1mm 押し当てる）")
     req(JAR_RIM - JAR_H > BASE_BOT, f"瓶の受けの底 {JAR_RIM - JAR_H - 3:.0f} が下枠の下面 {BASE_BOT} より上（机に当たらない）")
 
@@ -927,7 +969,17 @@ def check(verbose=True):
     fork_x0 = RACK["origin"][0] - DISC_D / 2 - 1
     req(RACK["origin"][0] - RACK_SLIDE + DISC_D / 2 + 1 <= fork_x0,
         f"出入り口（rack_x - 30）で持った筆の円板がフォークに当たらない: {RACK['origin'][0] - RACK_SLIDE + DISC_D / 2:.0f} < {fork_x0:.0f}")
-    req(all(b["id"] in HANDLE_D for b in BRUSHES), "全部の筆の柄の径が決まっている")
+    req(all(b["id"] in BRUSH_DIMS for b in BRUSHES), "全部の筆の寸法（A・B・D・E）が決まっている")
+    for b in BRUSHES:
+        d = BRUSH_DIMS[b["id"]]
+        f_end = d["A"] + d["B"]
+        req(f_end <= FERRULE_MAX and COLLET_Z[1] - max(f_end, COLLET_Z[0]) >= 20,
+            f"{b['id']}: 金具の端（筆先から {f_end:.1f}）がつばより下で、クランプが木の柄を 20mm 以上つかむ")
+        req(SLEEVE_DS[0] <= d["E"] <= SLEEVE_DS[-1], f"{b['id']}: 柄 Ø{d['E']} に合うスリーブ Ø{sleeve_for(d['E']):.1f} がある")
+        req(max(d["D"]) <= 24 and min(d["D"]) <= 10, f"{b['id']}: 金具（{d['D'][0]}×{d['D'][1]}）がゲージの溝 24×10 に入る")
+    req(SLEEVE_BORE - SLEEVE_OD >= 0.15 and SLEEVE_OD - (SLEEVE_DS[-1] + 0.2) >= 1.4,
+        f"スリーブ: 穴との遊び {SLEEVE_BORE - SLEEVE_OD:.1f}、いちばん太いスリーブの肉厚 {(SLEEVE_OD - SLEEVE_DS[-1] - 0.2) / 2:.1f}")
+    req(LIP_W > 24 and HANDLE_CUT < NECK_Z[0], f"スリーブのつば {LIP_W:.0f} 角がゲージの溝より広く、柄の端（{HANDLE_CUT:.0f}）が首より下")
 
     # --- 4. ブラシを持った移動とラックの筆（平面の距離）
     pts, pairs = macro_paths()
@@ -1170,12 +1222,17 @@ def printed_parts():
         "foot": on_bed(foot()),
         "length_gauge": on_bed(length_gauge()),
     }
-    for b in BRUSHES:
-        P[f"holder_{b['id']}"] = rot(holder(b["id"]), (180, 0, 0))   # カップリング面を下に
+    P["holder"] = rot(holder(), (180, 0, 0))                  # カップリング面を下に（全部の筆で同じ形）
+    for d in SLEEVE_DS:
+        P[sleeve_name(d)] = on_bed(sleeve(d))                 # つばを下に（下面に版と径）
     return P
 
 
-PRINT_QTY = {"jar_cup": 2, "light_clip": 2, "foot": 4}
+def sleeve_name(d):
+    return f"sleeve_d{d:.1f}"
+
+
+PRINT_QTY = {"jar_cup": 2, "light_clip": 2, "foot": 4, "holder": 4}
 
 # 段階的に組む（2026-10-18 方針: 実験台は H2C ではなく、完成機を段階的に作って段階 1 で試し描きする）
 #   1 = 実験台: フレーム・XYZ・フロート・A 軸・筆 1 本（平筆中）・パレット・瓶 1 つ・布・キャンバスの四隅・電装
@@ -1186,9 +1243,11 @@ STAGES = {1: "実験台（筆 1 本で試し描き）", 2: "筆の付け替え�
 
 
 def print_stage(name):
-    if name == "jar_cup":
-        return "1（1 個）+ 2（1 個）"
-    if name in ("tool_rack",) or (name.startswith("holder_") and name != f"holder_{STAGE_BRUSH}"):
+    if name in ("jar_cup", "holder"):
+        return "1（1 個）+ 2（%d 個）" % (PRINT_QTY[name] - 1)
+    if name.startswith("sleeve_"):
+        return "必要な径だけ"
+    if name in ("tool_rack",):
         return "2"
     if name in ("camera_bracket", "light_clip"):
         return "3"
@@ -1209,7 +1268,8 @@ def labeled_parts():
     """印刷向きの部品の底面にバージョンを刻んだもの（STL に書くのはこれ）。返り値 (部品, 刻んだ文字)。"""
     parts, labels = {}, {}
     for k, m in printed_parts().items():
-        parts[k], labels[k] = engrave_label(m, label_texts(PREFIX, VERSION, k))
+        texts = [f"{PREFIX}{VERSION} Ø{k[len('sleeve_d'):]}"] if k.startswith("sleeve_") else label_texts(PREFIX, VERSION, k)
+        parts[k], labels[k] = engrave_label(m, texts)
     return parts, labels
 
 
@@ -1378,7 +1438,9 @@ def layout_json():
         "work_area": {"x": X_RANGE, "y": Y_RANGE, "z": Z_RANGE},
         "heights": {"deck_top": DECK_TOP, "palette_top": PAL_TOP, "palette_floor": PAL_TOP - WELL_DEPTH,
                     "jar_rim": JAR_RIM, "jar_fill": JAR_FILL, "rack_fork_top": RACK_FORK_Z[1], "camera_lens": CAM_Z},
-        "tool": {"stick_out": STICK_OUT, "coupling_face_from_tip": FACE_Z, "handle_d": HANDLE_D},
+        "tool": {"stick_out": STICK_OUT, "coupling_face_from_tip": FACE_Z, "handle_cut_from_tip": HANDLE_CUT,
+                 "ferrule_max": FERRULE_MAX, "sleeves": SLEEVE_DS, "brushes": BRUSH_DIMS,
+                 "sleeve_for": {b["id"]: sleeve_for(BRUSH_DIMS[b["id"]]["E"]) for b in BRUSHES}},
         "head": {"a_motor_center_distance": round(A_C, 2), "float_stroke": FLOAT_STROKE, "spring_preload": SPRING_PRELOAD},
         "rinse_jar": list(RINSE),
         "markers": {str(k): [round(v[0], 1), round(v[1], 1)] for k, v in marker_centers().items()},
