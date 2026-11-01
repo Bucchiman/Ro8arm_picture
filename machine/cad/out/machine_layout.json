@@ -1,7 +1,7 @@
 {
   "note": "design values from machine/cad/machine.py; machine coordinates, Z = 0 at the canvas surface, head = brush tip",
   "config": "configs/machine_final.yaml",
-  "version": "M1",
+  "version": "M2",
   "work_area": {
     "x": [
       0,
@@ -30,7 +30,7 @@
     "coupling_face_from_tip": 70.0,
     "handle_d": {
       "flat_large": 8.0,
-      "flat_medium": 6.5,
+      "flat_medium": 7.9,
       "round_medium": 5.5,
       "round_small": 4.5
     }

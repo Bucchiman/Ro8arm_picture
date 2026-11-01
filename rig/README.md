@@ -1,3 +1,7 @@
+> **使わなくなりました（2026-10-18）**: 実験台は H2C ではなく、完成機を段階的に作って段階 1 で試し描きする方針に変えた。
+> ここの H2C 用の取付部品（mount・guide・slider・pad・fit_test）は刷らない。完成機は `machine/README.md`。
+> `labels.py`（部品へのバージョン印字）と `markers.py`（ArUco の印刷用画像）は完成機でも使う。
+
 # 筆1本の試験装置（テストリグ）— 3D 部品
 
 `docs/rig_plan.md` §3 の部品を Python（manifold3d）で作ったもの。対象は **Bambu Lab H2C**、筆は**平筆中 10mm（柄 Ø6.5）**。

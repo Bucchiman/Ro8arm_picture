@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.join(ROOT, "rig", "cad"))
 from labels import check_manifest, engrave_label, label_texts, write_manifest  # noqa: E402
 
 # 部品の形を 1 か所でも変えたら上げる。全部の印刷部品の底面に「M<VERSION>」を刻む（M = 完成機）
-VERSION = "1"
+VERSION = "2"
 PREFIX = "M"
 OUT = os.path.join(HERE, "out")
 PREV = os.path.join(HERE, "preview")
@@ -79,8 +79,8 @@ DISC_D, DISC_Z = 28.0, (62.0, 70.0)        # 上の円板: 上面がカップリ
 FACE_Z = DISC_Z[1]                         # カップリング面（筆先から 70mm）
 BALL_D, BALL_R = 6.0, 10.0                 # 鋼球 Ø6 ×3（主軸側）、半径 10 の円周上 120° おき
 MAG_D, MAG_T = 8.0, 3.0                    # ネオジム磁石 Ø8×3 ×3（主軸側）+ 同寸の磁石 ×3（ホルダー側）
-HANDLE_D = {"flat_large": 8.0, "flat_medium": 6.5, "round_medium": 5.5, "round_small": 4.5}   # ★ 柄の径
-HAIR_L = {"flat_large": 25.0, "flat_medium": 18.0, "round_medium": 14.0, "round_small": 10.0}  # ★ 毛の長さ
+HANDLE_D = {"flat_large": 8.0, "flat_medium": 7.9, "round_medium": 5.5, "round_small": 4.5}   # ★ 柄の径（flat_medium は実測 2026-10-18）
+HAIR_L = {"flat_large": 25.0, "flat_medium": 18.3, "round_medium": 14.0, "round_small": 10.0}  # ★ 毛の長さ（flat_medium は実測）
 
 # ---------------------------------------------------------------- 主軸・フロート（ばねで上に逃げる部分）
 COUPLER_Z = (70.0, 78.0)
@@ -1177,6 +1177,33 @@ def printed_parts():
 
 PRINT_QTY = {"jar_cup": 2, "light_clip": 2, "foot": 4}
 
+# 段階的に組む（2026-10-18 方針: 実験台は H2C ではなく、完成機を段階的に作って段階 1 で試し描きする）
+#   1 = 実験台: フレーム・XYZ・フロート・A 軸・筆 1 本（平筆中）・パレット・瓶 1 つ・布・キャンバスの四隅・電装
+#   2 = 筆の付け替え: ラック・残りのホルダー 3 本と磁石・仕上げ洗いの瓶
+#   3 = カメラ: 柱・腕・カメラ台・照明・マーカー
+STAGE_BRUSH = "flat_medium"       # 段階 1 で使う 1 本
+STAGES = {1: "実験台（筆 1 本で試し描き）", 2: "筆の付け替え（ラック + 筆 4 本）", 3: "カメラで見ながら描く"}
+
+
+def print_stage(name):
+    if name == "jar_cup":
+        return "1（1 個）+ 2（1 個）"
+    if name in ("tool_rack",) or (name.startswith("holder_") and name != f"holder_{STAGE_BRUSH}"):
+        return "2"
+    if name in ("camera_bracket", "light_clip"):
+        return "3"
+    return "1"
+
+
+def bom_stage(cat, item):
+    if cat == "カメラ" or "ArUco" in item:
+        return "3"
+    if "ネオジム" in item:
+        return "1（6 個）+ 2（9 個）"
+    if "ガラス瓶" in item:
+        return "1（1 個）+ 2（1 個）"
+    return "1"
+
 
 def labeled_parts():
     """印刷向きの部品の底面にバージョンを刻んだもの（STL に書くのはこれ）。返り値 (部品, 刻んだ文字)。"""
@@ -1290,22 +1317,24 @@ def bom():
 
 def write_bom(path):
     lines = [f"# 完成機 部品表 {PREFIX}{VERSION}（自動生成: machine/cad/machine.py）", "",
-             "## 購入品", "", "| 区分 | 品名 | 数量 | メモ |", "| --- | --- | --- | --- |"]
-    lines += [f"| {a} | {b} | {c} | {d} |" for a, b, c, d in bom()]
+             "段階的に組む。段階 1 が実験台（筆 1 本で試し描きし、筆の性質を実測する）。", ""]
+    lines += [f"- 段階 {k}: {v}" for k, v in STAGES.items()]
+    lines += ["", "## 購入品", "", "| 段階 | 区分 | 品名 | 数量 | メモ |", "| --- | --- | --- | --- | --- |"]
+    lines += [f"| {bom_stage(a, b)} | {a} | {b} | {c} | {d} |" for a, b, c, d in bom()]
     lines += ["", f"印刷部品の底面に「{PREFIX}{VERSION} 部品名」（入らない部品は「{PREFIX}{VERSION}」）を鏡文字で刻んである。"]
-    lines += ["", "## アルミフレームの切断", "", "| 規格 | 用途 | 長さ (mm) | 本数 |", "| --- | --- | --- | --- |"]
+    lines += ["", "## アルミフレームの切断", "", "| 段階 | 規格 | 用途 | 長さ (mm) | 本数 |", "| --- | --- | --- | --- | --- |"]
     total = {}
     for spec, use, L, n in extrusion_cut_list():
-        lines.append(f"| {spec} | {use} | {L:.0f} | {n} |")
+        lines.append(f"| {'3' if 'カメラ' in use or '照明' in use else '1'} | {spec} | {use} | {L:.0f} | {n} |")
         total[spec] = total.get(spec, 0) + L * n
     lines += ["", "合計: " + "、".join(f"{k} {v / 1000:.2f} m" for k, v in total.items()), "",
-              "## 印刷部品（PETG）", "", "| STL | 個数 | 大きさ (mm) | 体積 (cm3) |", "| --- | --- | --- | --- |"]
+              "## 印刷部品（PETG）", "", "| 段階 | STL | 個数 | 大きさ (mm) | 体積 (cm3) |", "| --- | --- | --- | --- | --- |"]
     vol = 0.0
     for name, m in printed_parts().items():
         lo, hi = bbox(m)
         q = PRINT_QTY.get(name, 1)
         vol += m.volume() / 1000 * q
-        lines.append(f"| `{name}.stl` | {q} | {hi[0] - lo[0]:.0f}×{hi[1] - lo[1]:.0f}×{hi[2] - lo[2]:.0f} | {m.volume() / 1000:.1f} |")
+        lines.append(f"| {print_stage(name)} | `{name}.stl` | {q} | {hi[0] - lo[0]:.0f}×{hi[1] - lo[1]:.0f}×{hi[2] - lo[2]:.0f} | {m.volume() / 1000:.1f} |")
     lines += ["", f"印刷部品の合計 {vol:.0f} cm3（充填率 100% 換算。PETG 約 {vol * 1.27 / 1000:.2f} kg、実際は充填 30〜40% で半分ほど）", ""]
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
